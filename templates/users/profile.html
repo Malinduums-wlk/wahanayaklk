@@ -1,0 +1,416 @@
+{% extends 'base.html' %}
+{% load static ads_extras %}
+
+{% block title %}Profile - Vehicle Ads{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-pic-upload {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: #a78bfa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: #fff;
+        overflow: visible;
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+    }
+    .profile-pic-menu {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-top: 8px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        display: none;
+        z-index: 1000;
+        min-width: 160px;
+        padding: 8px 0;
+    }
+    .profile-pic-menu.show {
+        display: block;
+    }
+    .profile-pic-menu::before {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 12px;
+        height: 12px;
+        background: white;
+        transform-origin: center;
+        rotate: 45deg;
+        box-shadow: -2px -2px 3px rgba(0,0,0,0.05);
+    }
+    .profile-pic-menu-item {
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #333;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 0.9rem;
+    }
+    .profile-pic-menu-item:hover {
+        background: #f8f9fa;
+    }
+    .profile-pic-menu-item i {
+        font-size: 1rem;
+        width: 16px;
+        text-align: center;
+    }
+    .profile-pic-menu-item.text-danger {
+        color: #dc3545;
+    }
+    .profile-pic-menu-item.text-danger:hover {
+        background: #fff5f5;
+    }
+    .profile-pic-upload:hover .profile-pic-overlay {
+        opacity: 1;
+    }
+    .remove-pic-icon {
+        position: absolute;
+        bottom: -8px;
+        right: -8px;
+        width: 24px;
+        height: 24px;
+        background: #dc3545;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        opacity: 0;
+        transition: all 0.2s;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .remove-pic-icon:hover {
+        background: #c82333;
+        transform: scale(1.1);
+    }
+    .profile-pic-upload:hover .remove-pic-icon {
+        opacity: 1;
+    }
+    .profile-pic-upload input[type='file'] {
+        opacity: 0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    .profile-pic-upload img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 50%;
+        z-index: 1;
+    }
+    .profile-pic-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+        border-radius: 50%;
+        z-index: 2;
+    }
+    .edit-profile-btn {
+        color: #4F46E5;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        transition: color 0.2s;
+    }
+    .edit-profile-btn:hover {
+        color: #4338CA;
+    }
+    .read-only-field {
+        display: none !important;
+    }
+    .edit-mode .read-only-field {
+        display: block !important;
+    }
+    .edit-mode .read-only-text {
+        display: none;
+    }
+    .action-buttons {
+        display: none !important;
+    }
+    .edit-mode .action-buttons {
+        display: flex !important;
+    }
+    .info-row {
+        margin-bottom: 1rem;
+        color: #333;
+    }
+    .info-label {
+        font-weight: 500;
+        margin-right: 0.5rem;
+    }
+    .info-value {
+        color: #555;
+    }
+    .edit-mode .form-fields {
+        display: block;
+    }
+    .form-fields {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 1100px;">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <h5 class="fw-bold mb-4">Account Settings</h5>
+            <div>
+                <button class="btn btn-light w-100" disabled>Profile</button>
+                {% if profile.is_premium %}
+                <a href="{% url 'users:shop_setup' %}" class="btn btn-light w-100 mt-2">Shop</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="card p-4" style="border-radius: 1rem;">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold mb-0">Overview</h2>
+                    <a href="#" class="edit-profile-btn" id="editProfileBtn">
+                        <i class="fas fa-pen"></i>
+                        <span>Edit Profile</span>
+                    </a>
+                </div>
+                <hr>
+                <form method="post" enctype="multipart/form-data" id="profileForm">
+                    {% csrf_token %}
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="profile-pic-container">
+                            <label class="profile-pic-upload" for="id_profile_picture">
+                                {% if profile and profile.profile_picture %}
+                                    <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" id="profile-pic-preview">
+                                    <div class="remove-pic-icon" id="removePhotoBtn" title="Remove photo">
+                                        <i class="fas fa-trash"></i>
+                                    </div>
+                                {% else %}
+                                    <i class="fas fa-user" id="profile-pic-icon"></i>
+                                    <img src="" alt="Profile Picture" id="profile-pic-preview" style="display: none;">
+                                {% endif %}
+                                <div class="profile-pic-overlay">
+                                    <i class="fas fa-camera" style="font-size: 1.7rem;"></i>
+                                </div>
+                                {{ profile_form.profile_picture }}
+                                <input type="hidden" name="remove_profile_picture" id="removeProfilePicInput" value="0">
+                            </label>
+                        </div>
+                        <div class="ms-4">
+                            <div class="fw-bold" style="font-size: 1.2rem;">{{ user.first_name }} {{ user.last_name }}</div>
+                            {% if profile and profile.unique_id %}
+                            <div class="text-muted" style="font-size: 0.95rem;">User ID: <span style="font-family:monospace;">{{ profile.unique_id }}</span></div>
+                            {% endif %}
+                            <div class="text-muted">{{ user.email }}</div>
+                        </div>
+                        <div class="ms-auto d-flex align-items-center" style="gap: 1rem;">
+                            {% if profile and profile.is_premium %}
+                                <i class="fas fa-shield-check" title="Premium User" style="font-size: 1.5rem;"></i>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr>
+                    <!-- Read-only display -->
+                    <div class="read-only-text">
+                        <div class="mb-4">
+                            <h5 class="mb-3">Name:</h5>
+                            <div class="info-row">
+                                <span class="info-label">First Name:</span>
+                                <span class="info-value">{{ user.first_name }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Last Name:</span>
+                                <span class="info-value">{{ user.last_name }}</span>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <h5 class="mb-3">Contact:</h5>
+                            <div class="info-row">
+                                <span class="info-label">Contact Phone:</span>
+                                <span class="info-value">{{ profile.contact_phone }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">WhatsApp Number:</span>
+                                <span class="info-value">{{ profile.whatsapp_number }}</span>
+                            </div>
+                            {% if profile.is_premium %}
+                            <div class="mb-4">
+                                <h5 class="mb-3">Premium Settings:</h5>
+                                <div class="info-row">
+                                    <span class="info-label">Show listing as:</span>
+                                    <span class="info-value">{{ profile.get_listing_type_display }}</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <!-- Edit mode fields -->
+                    <div class="form-fields">
+                        <div class="mb-4">
+                            <h5 class="mb-3">Name:</h5>
+                            <div class="row">
+                                <div class="col-md-6 d-flex align-items-center mb-3">
+                                    <label class="form-label mb-0 me-3" style="min-width: 120px;">First Name</label>
+                                    {{ name_form.first_name }}
+                                </div>
+                                <div class="col-md-6 d-flex align-items-center mb-3">
+                                    <label class="form-label mb-0 me-3" style="min-width: 120px;">Last Name</label>
+                                    {{ name_form.last_name }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <h5 class="mb-3">Contact:</h5>
+                            <div class="row">
+                                <div class="col-md-6 d-flex align-items-center mb-3">
+                                    <label class="form-label mb-0 me-3" style="min-width: 120px;">Contact phone</label>
+                                    {{ profile_form.contact_phone }}
+                                </div>
+                                <div class="col-md-6 d-flex align-items-center mb-3">
+                                    <label class="form-label mb-0 me-3" style="min-width: 120px;">WhatsApp number</label>
+                                    {{ profile_form.whatsapp_number }}
+                                </div>
+                            </div>
+                        </div>
+                        {% if profile.is_premium %}
+                        <div class="mb-4">
+                            <h5 class="mb-3">Premium Settings:</h5>
+                            <div class="row">
+                                <div class="col-md-6 d-flex align-items-center mb-3">
+                                    <label class="form-label mb-0 me-3" style="min-width: 120px;">Show listing as</label>
+                                    {{ profile_form.listing_type }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex justify-content-end action-buttons" style="gap: 1rem;">
+                        <button type="button" class="btn btn-outline-secondary" id="cancelEditBtn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle profile picture upload
+    const fileInput = document.getElementById('id_profile_picture');
+    const removePhotoBtn = document.getElementById('removePhotoBtn');
+    const removeProfilePicInput = document.getElementById('removeProfilePicInput');
+
+    // Handle edit mode
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const profileForm = document.getElementById('profileForm');
+    
+    // Function to toggle edit mode
+    function toggleEditMode(enabled) {
+        profileForm.classList.toggle('edit-mode', enabled);
+        editProfileBtn.style.display = enabled ? 'none' : 'inline-flex';
+    }
+
+    // Initialize form in read-only mode
+    toggleEditMode(false);
+
+    // Edit button click handler
+    editProfileBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        toggleEditMode(true);
+    });
+
+    // Cancel button click handler
+    cancelEditBtn.addEventListener('click', function() {
+        toggleEditMode(false);
+        // Reset form to original values
+        profileForm.reset();
+        // Reset profile picture preview if changed
+        const preview = document.getElementById('profile-pic-preview');
+        const icon = document.getElementById('profile-pic-icon');
+        if (preview && icon) {
+            if (preview.getAttribute('data-original-src')) {
+                preview.src = preview.getAttribute('data-original-src');
+                preview.style.display = preview.getAttribute('data-original-src') ? 'block' : 'none';
+                icon.style.display = preview.getAttribute('data-original-src') ? 'none' : 'block';
+            }
+        }
+    });
+
+    // Store original profile picture state
+    const preview = document.getElementById('profile-pic-preview');
+    if (preview) {
+        preview.setAttribute('data-original-src', preview.src);
+    }
+
+    // Preview selected image
+    fileInput.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            const previewImg = document.getElementById('profile-pic-preview');
+            const icon = document.getElementById('profile-pic-icon');
+            reader.onload = function (e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+                if (icon) icon.style.display = 'none';
+                if (removePhotoBtn) removePhotoBtn.style.display = 'flex';
+                // Clear removal flag if new file chosen
+                removeProfilePicInput.value = '0';
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Handle remove photo click
+    if (removePhotoBtn) {
+        removePhotoBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Clear input & preview
+            fileInput.value = '';
+            const previewImg = document.getElementById('profile-pic-preview');
+            const icon = document.getElementById('profile-pic-icon');
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+            if (icon) icon.style.display = 'block';
+
+            removeProfilePicInput.value = '1';
+            this.style.display = 'none';
+        });
+    }
+</script>
+{% endblock %} 

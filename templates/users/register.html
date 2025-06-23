@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Register - Vehicle Ads{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .auth-card .card-header {
+        background: #3f51b5;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        border-bottom: none;
+    }
+
+    .auth-card .card-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+
+    .auth-card .card-body {
+        padding: 2rem;
+    }
+
+    .auth-card .form-control {
+        padding: 0.75rem 1rem;
+        height: auto;
+        border-radius: 0.5rem;
+    }
+
+    .auth-card .btn-primary {
+        padding: 0.75rem;
+        font-weight: 500;
+        background-color: #3f51b5;
+        border: none;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .auth-card .btn-primary:hover {
+        background-color: #303f9f;
+    }
+
+    .auth-card .border-top {
+        border-color: #eee !important;
+    }
+
+    .form-row {
+        display: flex;
+        margin-right: -15px;
+        margin-left: -15px;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    /* Additional styles for register form */
+    .auth-card .helptext {
+        color: #666;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    .auth-card ul {
+        padding-left: 1.25rem;
+        margin-bottom: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="card-header">
+            <h2>Register</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                {% crispy form %}
+                <div class="border-top pt-3 mt-3 text-center">
+                    <small class="text-muted">
+                        Already Have An Account? <a class="ms-2" href="{% url 'login' %}">Sign In</a>
+                    </small>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,534 @@
+{% extends 'base.html' %}
+{% load static ads_extras %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 60vw;
+        width: 60vw;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    /* Vehicle Type Scroll */
+    .vehicle-types-container {
+        position: relative;
+        width: 60vw;
+        margin: 0 auto 0rem auto;
+    }
+
+    .vehicle-types {
+        display: flex;
+        overflow-x: hidden;
+        gap: 1rem;
+        padding: 1rem 0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        transition: transform 0.3s ease;
+    }
+
+    .vehicle-types::-webkit-scrollbar {
+        display: none;
+    }
+
+    .vehicle-type {
+        flex: 0 0 calc(12.5% - 0.875rem); /* 8 items per row (12.5% = 100/8) */
+        min-width: calc(12.5% - 0.875rem);
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .vehicle-type:hover,
+    .vehicle-type.active {
+        background: #3f51b5;
+        color: white;
+    }
+
+    .vehicle-type i {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+    .nav-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+
+    .nav-arrow:hover {
+        background: #3f51b5;
+        color: white;
+    }
+
+    .nav-arrow.left {
+        left: -20px;
+    }
+
+    .nav-arrow.right {
+        right: -20px;
+    }
+
+    .nav-arrow:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Search Filter */
+    .search-filter {
+        background: #ffffff;
+        padding: 0.5rem 1.25rem;
+        border-radius: 3rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        max-width: 60vw;
+        width: 60vw;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+    }
+
+    .search-filter .row {
+        align-items: center;
+        width: 100%;
+        flex-wrap: nowrap;
+        padding-right: 80px; /* Make space for the search button */
+    }
+
+    .search-filter .col-md {
+        position: relative;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    /* Ensure controls stretch full width inside each column */
+    .search-filter .form-select,
+    .search-filter .form-control,
+    .search-filter .btn {
+        width: 100%;
+    }
+
+    /* Oval search button */
+    .search-btn {
+        width: 70px !important;
+        height: 40px !important;
+        border-radius: 20px;
+        background: #4361ee;
+        color: #fff;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(67, 97, 238, 0.35);
+        transition: background 0.3s ease;
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .search-btn:hover {
+        background: #3451d1;
+    }
+
+    /* Adjust dropdown toggle to remove default caret spacing */
+    .search-filter .dropdown-toggle::after {
+        margin-left: 0.5rem;
+    }
+
+    /* Active Filters */
+    .active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .active-filters .badge {
+        background: #3f51b5;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: normal;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Vehicle Listing Cards */
+    .vehicle-card {
+        background: #f8f9fa;
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .vehicle-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .vehicle-card .image-container {
+        position: relative;
+        padding-top: 66.67%;
+        overflow: hidden;
+        border-radius: 0;
+    }
+
+    .vehicle-card .image-container img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .vehicle-card .listing-date {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0.25rem 0.75rem;
+        border-radius: 0 0 12px 0;
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .vehicle-card .favorite-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .vehicle-card .favorite-btn:hover {
+        background: #fff;
+        transform: scale(1.1);
+    }
+
+    .vehicle-card .favorite-btn.active i {
+        color: #dc3545;
+    }
+
+    .vehicle-card .card-body {
+        padding: 1rem;
+    }
+
+    .vehicle-card .title-price {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+
+    .vehicle-card .vehicle-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        color: #333;
+    }
+
+    .vehicle-card .vehicle-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #28a745;
+        white-space: nowrap;
+    }
+
+    .vehicle-card .vehicle-details {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .vehicle-card .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .vehicle-card .detail-item i {
+        font-size: 0.9rem;
+        width: 1rem;
+        text-align: center;
+    }
+
+    @media (max-width: 48em) {
+        .container {
+            max-width: 100%;
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Vehicle Types -->
+    <div class="vehicle-types-container">
+        <button class="nav-arrow left" id="scrollLeft">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="vehicle-types" id="vehicleTypes">
+            {% include 'ads/includes/vehicle_types.html' %}
+        </div>
+        <button class="nav-arrow right" id="scrollRight">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Search Filter -->
+    <div class="search-filter">
+        {% include 'ads/includes/search_filter.html' %}
+    </div>
+
+    <!-- Active Filters -->
+    <div class="active-filters">
+        {% if search_params.type %}
+        <span class="badge"><i class="fas fa-car"></i> {{ search_params.type|title }}</span>
+        {% endif %}
+
+        {% if search_params.make %}
+        <span class="badge"><i class="fas fa-industry"></i> {{ search_params.make|title }}</span>
+        {% endif %}
+
+        {% if search_params.model %}
+        <span class="badge"><i class="fas fa-tag"></i> {{ search_params.model|title }}</span>
+        {% endif %}
+
+        {% if search_params.condition and search_params.condition != 'any' %}
+        <span class="badge"><i class="fas fa-info-circle"></i> {{ search_params.condition|title }}</span>
+        {% endif %}
+
+        {% if search_params.min_price or search_params.max_price %}
+        <span class="badge">
+            <i class="fas fa-tag"></i>
+            {% if search_params.min_price and search_params.max_price %}
+            Rs.{{ search_params.min_price }} - Rs.{{ search_params.max_price }}
+            {% elif search_params.min_price %}
+            Min Rs.{{ search_params.min_price }}
+            {% else %}
+            Max Rs.{{ search_params.max_price }}
+            {% endif %}
+        </span>
+        {% endif %}
+
+        {% if search_params.city and search_params.city != 'any' %}
+        <span class="badge"><i class="fas fa-map-marker-alt"></i> {{ search_params.city|underscore_space|title }}</span>
+        {% endif %}
+
+        {% if search_params.fuel and search_params.fuel != 'any' %}
+        <span class="badge"><i class="fas fa-gas-pump"></i> {{ search_params.fuel|title }}</span>
+        {% endif %}
+    </div>
+
+    <!-- Layout Switcher and Results -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h4 class="mb-0">Search Results</h4>
+        <div class="layout-switcher">
+            <button class="layout-btn active" title="Grid Layout">
+                <i class="fas fa-th-large fa-lg"></i>
+            </button>
+            <button class="layout-btn" title="List Layout">
+                <i class="fas fa-list fa-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Vehicle Listings -->
+    {% if vehicles %}
+    <div class="vehicle-grid">
+        {% for vehicle in vehicles %}
+        <a href="{% url 'ads:detail' vehicle.id %}" class="vehicle-card">
+            <div class="image-container">
+                {% if vehicle.images.first %}
+                <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                {% endif %}
+                <div class="listing-date">{{ vehicle.created_at|date:"M d, Y" }}</div>
+                {% if user.is_authenticated %}
+                <button class="favorite-btn {% if vehicle in user.favorite_vehicles.all %}active{% endif %}" 
+                        onclick="event.preventDefault(); toggleFavorite(this)" 
+                        data-vehicle-id="{{ vehicle.id }}">
+                    <i class="fas fa-heart"></i>
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="title-price">
+                    <div class="title-container">
+                        <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
+                    </div>
+                    <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
+                </div>
+                <div class="card-divider"></div>
+                <div class="vehicle-details">
+                    <div class="detail-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>{{ vehicle.registered|default:vehicle.year }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-road"></i>
+                        <span>{{ vehicle.mileage }}km</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ vehicle.location }}</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <h3>No vehicles found matching your criteria</h3>
+        <p>Try adjusting your search filters</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Vehicle type navigation
+document.addEventListener('DOMContentLoaded', function() {
+    const vehicleTypes = document.getElementById('vehicleTypes');
+    const scrollLeft = document.getElementById('scrollLeft');
+    const scrollRight = document.getElementById('scrollRight');
+    const itemWidth = vehicleTypes.querySelector('.vehicle-type').offsetWidth;
+    const gap = 16; // 1rem gap
+    const scrollAmount = (itemWidth + gap) * 4; // Scroll 4 items at a time
+
+    function updateScrollButtons() {
+        scrollLeft.disabled = vehicleTypes.scrollLeft <= 0;
+        scrollRight.disabled = vehicleTypes.scrollLeft >= vehicleTypes.scrollWidth - vehicleTypes.clientWidth;
+    }
+
+    scrollLeft.addEventListener('click', () => {
+        vehicleTypes.scrollBy({
+            left: -scrollAmount,
+            behavior: 'smooth'
+        });
+    });
+
+    scrollRight.addEventListener('click', () => {
+        vehicleTypes.scrollBy({
+            left: scrollAmount,
+            behavior: 'smooth'
+        });
+    });
+
+    vehicleTypes.addEventListener('scroll', updateScrollButtons);
+    updateScrollButtons();
+
+    // Map vehicle types to URL slugs
+    const typeToSlug = {
+        'car': 'cars',
+        'motorcycle': 'motorcycles',
+        'three-wheeler': 'three-wheelers',
+        'van': 'vans',
+        'suv': 'suvs',
+        'pickup': 'pickups',
+        'bus': 'buses',
+        'lorry': 'lorries',
+        'heavy-duty': 'heavy-duty',
+        'tractor': 'tractors',
+        'bicycle': 'bicycles',
+        'other': 'others'
+    };
+
+    // Handle vehicle type selection
+    document.querySelectorAll('.vehicle-type').forEach(type => {
+        type.addEventListener('click', () => {
+            const searchParams = new URLSearchParams(window.location.search);
+            const selectedType = type.getAttribute('data-type');
+            const currentPath = window.location.pathname;
+            const pathParts = currentPath.split('/').filter(Boolean); // remove empty segments
+            const currentSlug = pathParts.length >= 3 ? pathParts[2] : '';
+
+            let newUrl = '/ads/search/';
+            let queryParams = [];
+
+            // Determine if we are toggling the same type (unselect)
+            if (typeToSlug[selectedType] !== currentSlug) {
+                // Add the new vehicle type to the URL if it's different
+                newUrl += `${typeToSlug[selectedType]}/`;
+            }
+
+            // Only add non-empty, non-default parameters
+            if (searchParams.get('make')) queryParams.push(`make=${searchParams.get('make')}`);
+            if (searchParams.get('model')) queryParams.push(`model=${searchParams.get('model')}`);
+            if (searchParams.get('condition') && searchParams.get('condition') !== 'any') 
+                queryParams.push(`condition=${searchParams.get('condition')}`);
+            if (searchParams.get('min_price')) queryParams.push(`min_price=${searchParams.get('min_price')}`);
+            if (searchParams.get('max_price')) queryParams.push(`max_price=${searchParams.get('max_price')}`);
+            if (searchParams.get('city') && searchParams.get('city') !== 'any') 
+                queryParams.push(`city=${searchParams.get('city')}`);
+            if (searchParams.get('fuel') && searchParams.get('fuel') !== 'any') 
+                queryParams.push(`fuel=${searchParams.get('fuel')}`);
+
+            // Add query parameters if any exist
+            if (queryParams.length > 0) {
+                newUrl += '?' + queryParams.join('&');
+            }
+
+            // Navigate to the new URL
+            window.location.href = newUrl;
+        });
+    });
+});
+
+function toggleFavorite(button) {
+    const vehicleId = button.dataset.vehicleId;
+    
+    fetch(`/ads/toggle-favorite/${vehicleId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            button.classList.toggle('active');
+        }
+    });
+}
+</script>
+{% endblock %} 

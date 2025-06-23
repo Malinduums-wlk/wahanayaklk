@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Badge Users{% endblock %}
+
+{% block extra_css %}
+<style>
+    .badge-table {
+        width: 100%;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .badge-table th {
+        background: #f8f9fa;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .badge-table td {
+        padding: 1rem;
+        border-top: 1px solid #eee;
+        vertical-align: middle;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .user-name {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .user-email {
+        color: #666;
+        font-size: 0.875rem;
+    }
+
+    .badge-toggle {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+
+    .badge-toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .badge-toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+    .badge-toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    .badge-toggle input:checked + .badge-toggle-slider {
+        background-color: #4CAF50;
+    }
+
+    .badge-toggle input:checked + .badge-toggle-slider:before {
+        transform: translateX(26px);
+    }
+
+    .date-picker {
+        padding: 0.5rem;
+        border: 1px solid #ddd;
+        border-radius: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .contact-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .contact-number {
+        font-weight: 600;
+    }
+
+    .whatsapp-number {
+        color: #25D366;
+        font-size: 0.875rem;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+    }
+
+    .pagination a {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 0.25rem;
+        color: #333;
+        text-decoration: none;
+    }
+
+    .pagination a.active {
+        background: #3f51b5;
+        color: white;
+        border-color: #3f51b5;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    {% csrf_token %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Badge Users</h1>
+        <div class="d-flex gap-2">
+            <input type="text" class="form-control" placeholder="Search users..." id="searchInput">
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="badge-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Verified Badge</th>
+                    <th>End Date</th>
+                    <th>Premium Badge</th>
+                    <th>End Date</th>
+                    <th>Trusted Badge</th>
+                    <th>Contact</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile in profiles %}
+                <tr data-user-id="{{ profile.user.id }}">
+                    <td>{{ profile.unique_id }}</td>
+                    <td>
+                        <div class="user-info">
+                            {% if profile.profile_picture %}
+                                <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user.username }}" class="user-avatar">
+                            {% else %}
+                                <img src="{% static 'branding/logo-main.png' %}" alt="Default avatar" class="user-avatar">
+                            {% endif %}
+                            <div>
+                                <div class="user-name">{{ profile.user.get_full_name|default:profile.user.username }}</div>
+                                <div class="user-email">{{ profile.user.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <label class="badge-toggle">
+                            <input type="checkbox" data-badge-type="verified" {% if profile.has_verified_badge %}checked{% endif %}>
+                            <span class="badge-toggle-slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <input type="date" class="date-picker" data-badge-type="verified" value="{{ profile.verified_badge_end_date|date:'Y-m-d' }}">
+                    </td>
+                    <td>
+                        <label class="badge-toggle">
+                            <input type="checkbox" data-badge-type="premium" {% if profile.has_premium_badge %}checked{% endif %}>
+                            <span class="badge-toggle-slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <input type="date" class="date-picker" data-badge-type="premium" value="{{ profile.premium_badge_end_date|date:'Y-m-d' }}">
+                    </td>
+                    <td>
+                        <label class="badge-toggle">
+                            <input type="checkbox" data-badge-type="trusted" {% if profile.has_trusted_badge %}checked{% endif %}>
+                            <span class="badge-toggle-slider"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <div class="contact-info">
+                            <div class="contact-number">{{ profile.contact_phone }}</div>
+                            {% if profile.whatsapp_number %}
+                            <div class="whatsapp-number">
+                                <i class="fab fa-whatsapp"></i> {{ profile.whatsapp_number }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        {% if profiles.has_previous %}
+            <a href="?page={{ profiles.previous_page_number }}">&laquo; Previous</a>
+        {% endif %}
+        
+        {% for num in profiles.paginator.page_range %}
+            {% if num == profiles.number %}
+                <a href="?page={{ num }}" class="active">{{ num }}</a>
+            {% else %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if profiles.has_next %}
+            <a href="?page={{ profiles.next_page_number }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Function to update badge status
+    function updateBadge(userId, badgeType, isActive, endDate) {
+        fetch(`/users/admin/update-badge/${userId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                badge_type: badgeType,
+                is_active: isActive,
+                end_date: endDate
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Optional: Show success message
+            } else {
+                alert('Error updating badge: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating badge');
+        });
+    }
+
+    // Add event listeners to all badge toggles
+    document.querySelectorAll('.badge-toggle input[type="checkbox"]').forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const row = this.closest('tr');
+            const userId = row.dataset.userId;
+            const badgeType = this.dataset.badgeType;
+            const endDateInput = row.querySelector(`input[data-badge-type="${badgeType}"]`);
+            
+            updateBadge(userId, badgeType, this.checked, endDateInput.value);
+        });
+    });
+
+    // Add event listeners to all date pickers
+    document.querySelectorAll('.date-picker').forEach(datePicker => {
+        datePicker.addEventListener('change', function() {
+            const row = this.closest('tr');
+            const userId = row.dataset.userId;
+            const badgeType = this.dataset.badgeType;
+            const toggle = row.querySelector(`input[type="checkbox"][data-badge-type="${badgeType}"]`);
+            
+            if (toggle.checked) {
+                updateBadge(userId, badgeType, true, this.value);
+            }
+        });
+    });
+
+    // Add event listener to search input
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.badge-table tbody tr').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    }
+});
+</script>
+{% endblock %} 

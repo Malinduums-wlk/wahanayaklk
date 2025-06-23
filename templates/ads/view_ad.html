@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .contact-section {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .contact-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 6px;
+        background: #f8f9fa;
+    }
+
+    .contact-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin-right: 1rem;
+        background: #e9ecef;
+        color: #495057;
+    }
+
+    .whatsapp-btn {
+        width: 100%;
+        padding: 12px;
+        background: #25D366;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .whatsapp-btn:hover {
+        background: #128C7E;
+    }
+
+    .contact-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+
+    .contact-value {
+        font-size: 1rem;
+        color: #212529;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .phone-number {
+        margin-top: 1rem;
+        padding: 8px 12px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .phone-icon {
+        color: #495057;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Existing vehicle details sections -->
+    
+    <!-- Contact Information Section -->
+    <div class="contact-section">
+        <h3 class="section-title mb-4">Contact Information</h3>
+        
+        <!-- WhatsApp Button -->
+        {% if vehicle.whatsapp_number %}
+        <div class="contact-item">
+            <div class="contact-icon">
+                <i class="fab fa-whatsapp"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="contact-label">Contact via WhatsApp</div>
+                <button class="whatsapp-btn" onclick="redirectToWhatsApp('{{ vehicle.whatsapp_number }}')">
+                    <i class="fab fa-whatsapp"></i>
+                    Chat on WhatsApp
+                </button>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Phone Number below WhatsApp button -->
+        <div class="phone-number">
+            <i class="fas fa-phone phone-icon"></i>
+            <span>{{ vehicle.phone_number }}</span>
+        </div>
+    </div>
+
+    <!-- Rest of the vehicle details -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function redirectToWhatsApp(number) {
+    // Format the number for WhatsApp
+    let whatsappNumber = number.trim().replace(/\D/g, ''); // Remove all non-digits
+    if (whatsappNumber.startsWith('0')) {
+        whatsappNumber = '94' + whatsappNumber.substring(1);
+    }
+    // Open WhatsApp chat in the same window
+    window.location.href = `https://wa.me/${whatsappNumber}`;
+}
+</script>
+{% endblock %} 

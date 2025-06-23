@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - Vehicle Ads{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .auth-card .card-header {
+        background: #3f51b5;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        border-bottom: none;
+    }
+
+    .auth-card .card-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+
+    .auth-card .card-body {
+        padding: 2rem;
+    }
+
+    .auth-card .form-control {
+        padding: 0.75rem 1rem;
+        height: auto;
+        border-radius: 0.5rem;
+    }
+
+    .auth-card .btn-primary {
+        padding: 0.75rem;
+        font-weight: 500;
+        background-color: #3f51b5;
+        border: none;
+        width: 100%;
+    }
+
+    .auth-card .btn-primary:hover {
+        background-color: #303f9f;
+    }
+
+    .auth-card .border-top {
+        border-color: #eee !important;
+    }
+
+    .forgot-password {
+        text-align: right;
+        margin-bottom: 1rem;
+    }
+
+    .forgot-password a {
+        color: #3f51b5;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .forgot-password a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="card-header">
+            <h2>Login</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                {{ form|crispy }}
+                <div class="forgot-password">
+                    <a href="{% url 'password_reset' %}">Forgot Password?</a>
+                </div>
+                <button class="btn btn-primary" type="submit">Login</button>
+            </form>
+            <div class="border-top pt-3 mt-3 text-center">
+                <small class="text-muted">
+                    Need An Account? <a class="ms-2" href="{% url 'users:register' %}">Sign Up</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

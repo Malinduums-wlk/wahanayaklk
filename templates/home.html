@@ -1,0 +1,622 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Welcome to Wahanayak.lk{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        height: 50vh;
+        background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        color: #3f51b5;
+        margin-bottom: 2rem;
+    }
+
+    /* Vehicle Type Scroll */
+    .vehicle-types-container {
+        position: relative;
+        width: 60vw;
+        margin: 0 auto 0rem auto;
+    }
+
+    .vehicle-types {
+        display: flex;
+        overflow-x: hidden;
+        gap: 1rem;
+        padding: 1rem 0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        transition: transform 0.3s ease;
+    }
+
+    .vehicle-types::-webkit-scrollbar {
+        display: none;
+    }
+
+    .vehicle-type {
+        flex: 0 0 calc(12.5% - 0.875rem); /* 8 items per row (12.5% = 100/8) */
+        min-width: calc(12.5% - 0.875rem);
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+    }
+
+    .vehicle-type:hover,
+    .vehicle-type.active {
+        background: #3f51b5;
+        color: white;
+    }
+
+    .vehicle-type i {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .nav-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+
+    .nav-arrow:hover {
+        background: #3f51b5;
+        color: white;
+    }
+
+    .nav-arrow.left {
+        left: -20px;
+    }
+
+    .nav-arrow.right {
+        right: -20px;
+    }
+
+    .nav-arrow:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Search Filter */
+    .search-filter {
+        background: #ffffff;
+        padding: 0.5rem 1.25rem;
+        border-radius: 3rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        margin-bottom: 2rem;
+        max-width: 60vw;
+        width: 60vw;
+        margin-left: auto;
+        margin-right: auto;
+        position: relative;
+    }
+
+    .search-filter .row {
+        align-items: center;
+        width: 100%;
+        flex-wrap: nowrap;
+        padding-right: 80px; /* Make space for the search button */
+    }
+
+    .search-filter .col-md {
+        position: relative;
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    /* Ensure controls stretch full width inside each column */
+    .search-filter .form-select,
+    .search-filter .form-control,
+    .search-filter .btn {
+        width: 100%;
+    }
+
+    /* Oval search button */
+    .search-btn {
+        width: 70px !important;
+        height: 40px !important;
+        border-radius: 20px;
+        background: #4361ee;
+        color: #fff;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(67, 97, 238, 0.35);
+        transition: background 0.3s ease;
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .search-btn:hover {
+        background: #3451d1;
+    }
+
+    /* Adjust dropdown toggle to remove default caret spacing */
+    .search-filter .dropdown-toggle::after {
+        margin-left: 0.5rem;
+    }
+
+    /* Urgent Selling Section */
+    .section-title {
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .section-title i {
+        color: #3f51b5;
+    }
+
+    .vehicle-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    /* Vehicle grid layout is now in vehicle-listings.css */
+    .vehicle-card .title-price {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    .vehicle-card .vehicle-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        color: #333;
+    }
+    .vehicle-card .vehicle-price { font-size: 1.1rem; font-weight: 600; color: #28a745; white-space: nowrap; }
+    .vehicle-card .vehicle-details { display: flex; gap: 1rem; font-size: 0.9rem; color: #666; }
+    .vehicle-card .detail-item { display: flex; align-items: center; gap: 0.35rem; }
+    .vehicle-card .detail-item i { font-size: 0.9rem; width: 1rem; text-align: center; }
+
+    /* Contact Section */
+    .contact-section {
+        text-align: center;
+        margin-top: 8rem;
+        margin-bottom: 2rem;
+    }
+
+    .contact-section .section-title {
+        justify-content: center;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .whatsapp-btn {
+        background: #25D366;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 0.5rem;
+        font-size: 1.2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        text-decoration: none;
+    }
+
+    .whatsapp-btn:hover {
+        background: #128C7E;
+        color: white;
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .custom-container {
+            max-width: 95vw;
+            width: 95vw;
+        }
+    }
+
+    /* Hero Section specific override */
+    .hero-section .custom-container {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 0 1rem;
+    }
+
+    .search-btn i {
+        margin-left: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="custom-container">
+        <h1 class="hero-title">Buy Your Dream Vehicle</h1>
+    </div>
+</div>
+
+<div class="custom-container">
+    <!-- Vehicle Types -->
+    <div class="vehicle-types-container">
+        <button class="nav-arrow left" id="scrollLeft">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="vehicle-types" id="vehicleTypes">
+            <div class="vehicle-type">
+                <i class="fas fa-car"></i>
+                <div>Car</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-motorcycle"></i>
+                <div>Motorcycle</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-truck-pickup"></i>
+                <div>3-Wheeler</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-shuttle-van"></i>
+                <div>Van</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-car-side"></i>
+                <div>Suv/Jeep</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-truck-pickup"></i>
+                <div>Pickup/Double Cab</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-bus"></i>
+                <div>Bus</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-truck"></i>
+                <div>Lorry/Truck</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-truck"></i>
+                <div>Heavy Duty</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-tractor"></i>
+                <div>Tractor</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-bicycle"></i>
+                <div>Bicycle</div>
+            </div>
+            <div class="vehicle-type">
+                <i class="fas fa-car-side"></i>
+                <div>Other</div>
+            </div>
+        </div>
+        <button class="nav-arrow right" id="scrollRight">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Search Filter -->
+    <div class="search-filter">
+        <div class="row g-3">
+            <div class="col-md">
+                <select class="form-select" id="makeSelect">
+                    <option value="" selected>Make</option>
+                    <option value="mazda">Mazda</option>
+                    <option value="toyota">Toyota</option>
+                    <option value="bmw">BMW</option>
+                    <option value="nissan">Nissan</option>
+                    <option value="honda">Honda</option>
+                    <option value="mercedes">Mercedes-Benz</option>
+                    <option value="audi">Audi</option>
+                    <option value="volkswagen">Volkswagen</option>
+                    <option value="ford">Ford</option>
+                    <option value="hyundai">Hyundai</option>
+                </select>
+            </div>
+            <div class="col-md">
+                <input type="text" class="form-control" id="modelInput" placeholder="Model">
+            </div>
+            <div class="col-md">
+                <select class="form-select" id="conditionSelect">
+                    <option value="any" selected>Any Condition</option>
+                    <option value="new">Brand New</option>
+                    <option value="used">Used (Registered)</option>
+                    <option value="reconditioned">Recondition (Unregistered)</option>
+                </select>
+            </div>
+            <div class="col-md">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="priceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Price
+                    </button>
+                    <div class="dropdown-menu p-3" style="width: 300px;">
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="minPrice" placeholder="Min Price">
+                        </div>
+                        <div class="mb-3">
+                            <input type="number" class="form-control" id="maxPrice" placeholder="Max Price">
+                        </div>
+                        <button class="btn btn-primary w-100" id="applyPrice">Apply</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md">
+                <select class="form-select" id="citySelect">
+                    <option value="any" selected>Any City</option>
+                    <optgroup label="Western Province">
+                        <option value="any_western">Any City in Western Province</option>
+                        <option value="colombo">Colombo</option>
+                        <option value="gampaha">Gampaha</option>
+                        <option value="kalutara">Kalutara</option>
+                    </optgroup>
+                    <optgroup label="Central Province">
+                        <option value="any_central">Any City in Central Province</option>
+                        <option value="kandy">Kandy</option>
+                        <option value="matale">Matale</option>
+                        <option value="nuwara_eliya">Nuwara Eliya</option>
+                    </optgroup>
+                    <optgroup label="Southern Province">
+                        <option value="any_southern">Any City in Southern Province</option>
+                        <option value="galle">Galle</option>
+                        <option value="matara">Matara</option>
+                        <option value="hambantota">Hambantota</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="col-md">
+                <select class="form-select" id="fuelSelect">
+                    <option value="any" selected>Any Fuel</option>
+                    <option value="petrol">Petrol</option>
+                    <option value="diesel">Diesel</option>
+                    <option value="electric">Electric</option>
+                    <option value="hybrid">Hybrid</option>
+                </select>
+            </div>
+        </div>
+        <button class="btn search-btn" id="searchButton">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+
+    <!-- Urgent Selling Section -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="section-title mb-0">
+            <i class="fas fa-fire"></i>
+            Urgent Selling
+        </h2>
+        <div class="layout-switcher">
+            <button class="layout-btn active" title="Grid Layout">
+                <i class="fas fa-th-large fa-lg"></i>
+            </button>
+            <button class="layout-btn" title="List Layout">
+                <i class="fas fa-list fa-lg"></i>
+            </button>
+        </div>
+    </div>
+    <div class="vehicle-grid">
+        {% if urgent_vehicles %}
+            {% for vehicle in urgent_vehicles %}
+            <a href="{% url 'ads:detail' vehicle.id %}" class="vehicle-card">
+                <div class="image-container">
+                    {% if vehicle.images.first %}
+                    <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.title }}">
+                    {% else %}
+                    <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
+                    {% endif %}
+                    <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
+                    <button class="favorite-btn {% if vehicle in user.favorites.all %}active{% endif %}" data-vehicle-id="{{ vehicle.id }}" onclick="toggleFavorite(this)"><i class="fas fa-heart"></i></button>
+                </div>
+                <div class="card-body">
+                    <div class="title-price">
+                        <div class="title-container">
+                            <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
+                        </div>
+                        <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
+                    </div>
+                    <div class="card-divider"></div>
+                    <div class="vehicle-details">
+                        {% if vehicle.year %}<div class="detail-item"><i class="fas fa-calendar-alt"></i><span>{{ vehicle.year }}</span></div>{% endif %}
+                        {% if vehicle.mileage %}<div class="detail-item"><i class="fas fa-road"></i><span>{{ vehicle.mileage }} km</span></div>{% endif %}
+                        <div class="detail-item"><i class="fas fa-map-marker-alt"></i><span>{{ vehicle.location }}</span></div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Contact Section -->
+    <div class="contact-section">
+        <h2 class="section-title">Contact Wahanayak.lk</h2>
+        <a href="https://wa.me/94740677216" class="whatsapp-btn">
+            <i class="fab fa-whatsapp"></i>
+            WhatsApp
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Vehicle type navigation
+    document.addEventListener('DOMContentLoaded', function() {
+        const vehicleTypes = document.getElementById('vehicleTypes');
+        const scrollLeft = document.getElementById('scrollLeft');
+        const scrollRight = document.getElementById('scrollRight');
+        const itemWidth = vehicleTypes.querySelector('.vehicle-type').offsetWidth;
+        const gap = 16; // 1rem gap
+        const scrollAmount = (itemWidth + gap) * 4; // Scroll 4 items at a time
+
+        function updateScrollButtons() {
+            scrollLeft.disabled = vehicleTypes.scrollLeft <= 0;
+            scrollRight.disabled = vehicleTypes.scrollLeft >= vehicleTypes.scrollWidth - vehicleTypes.clientWidth;
+        }
+
+        scrollLeft.addEventListener('click', () => {
+            vehicleTypes.scrollBy({
+                left: -scrollAmount,
+                behavior: 'smooth'
+            });
+        });
+
+        scrollRight.addEventListener('click', () => {
+            vehicleTypes.scrollBy({
+                left: scrollAmount,
+                behavior: 'smooth'
+            });
+        });
+
+        vehicleTypes.addEventListener('scroll', updateScrollButtons);
+        updateScrollButtons();
+    });
+
+    // Vehicle type selection
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.vehicle-type').forEach(type => {
+            type.addEventListener('click', () => {
+                // If clicking the already active type, deselect it
+                if (type.classList.contains('active')) {
+                    type.classList.remove('active');
+                } else {
+                    // Otherwise, remove active from current and set new active
+                    const current = document.querySelector('.vehicle-type.active');
+                    if (current) current.classList.remove('active');
+                    type.classList.add('active');
+                }
+            });
+        });
+    });
+
+    // Handle search button click
+    document.getElementById('searchButton').addEventListener('click', function() {
+        const activeType = document.querySelector('.vehicle-type.active');
+        let vehicleType = '';
+        let urlType = '';
+        
+        if (activeType) {
+            const vehicleTypeText = activeType.querySelector('div')?.textContent.toLowerCase() || '';
+            const textToSlug = {
+                'car': ['car', 'cars'],
+                'motorcycle': ['motorcycle', 'motorcycles'],
+                '3-wheeler': ['three-wheeler', 'three-wheelers'],
+                'van': ['van', 'vans'],
+                'suv/jeep': ['suv', 'suvs'],
+                'pickup/double cab': ['pickup', 'pickups'],
+                'bus': ['bus', 'buses'],
+                'lorry/truck': ['lorry', 'lorries'],
+                'heavy duty': ['heavy-duty', 'heavy-duty'],
+                'tractor': ['tractor', 'tractors'],
+                'bicycle': ['bicycle', 'bicycles'],
+                'other': ['other', 'others']
+            };
+            const typeInfo = textToSlug[vehicleTypeText] || [vehicleTypeText.replace(/\s+/g,'-'), vehicleTypeText.replace(/\s+/g,'-') + 's'];
+            vehicleType = typeInfo[0];
+            urlType = typeInfo[1];
+        }
+
+        const make = document.getElementById('makeSelect').value;
+        const model = document.getElementById('modelInput').value;
+        const condition = document.getElementById('conditionSelect').value;
+        const minPrice = document.getElementById('minPrice').value;
+        const maxPrice = document.getElementById('maxPrice').value;
+        const city = document.getElementById('citySelect').value;
+        const fuel = document.getElementById('fuelSelect').value;
+
+        let searchParams = [];
+        if (make && make !== 'any') searchParams.push(`make=${make}`);
+        if (model) searchParams.push(`model=${model}`);
+        if (condition && condition !== 'any') searchParams.push(`condition=${condition}`);
+        if (minPrice) searchParams.push(`min_price=${minPrice}`);
+        if (maxPrice) searchParams.push(`max_price=${maxPrice}`);
+        if (city && city !== 'any') searchParams.push(`city=${city}`);
+        if (fuel && fuel !== 'any') searchParams.push(`fuel=${fuel}`);
+
+        let url = '/ads/search/';
+        if (vehicleType) {
+            url += urlType + '/';
+        }
+        if (searchParams.length > 0) {
+            url += '?' + searchParams.join('&');
+        }
+
+        window.location.href = url;
+    });
+
+    // Handle price dropdown click events
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown')) {
+            const dropdowns = document.querySelectorAll('.dropdown-menu');
+            dropdowns.forEach(d => d.classList.remove('show'));
+        }
+    });
+
+    // Update price dropdown button text when applying price range
+    document.getElementById('applyPrice').addEventListener('click', function() {
+        const minPrice = document.getElementById('minPrice').value;
+        const maxPrice = document.getElementById('maxPrice').value;
+        const priceBtn = document.getElementById('priceDropdown');
+
+        if (minPrice && maxPrice) {
+            priceBtn.textContent = `Rs.${minPrice} - Rs.${maxPrice}`;
+        } else if (minPrice) {
+            priceBtn.textContent = `Min Rs.${minPrice}`;
+        } else if (maxPrice) {
+            priceBtn.textContent = `Max Rs.${maxPrice}`;
+        } else {
+            priceBtn.textContent = 'Price';
+        }
+
+        // Close the dropdown
+        document.querySelector('.dropdown-menu').classList.remove('show');
+    });
+
+    // Handle long titles
+    document.addEventListener('DOMContentLoaded', function() {
+        function applyMarquee() {
+            const titles = document.querySelectorAll('.vehicle-title');
+            titles.forEach(title => {
+                const container = title.parentElement.parentElement;
+                if (title.scrollWidth/2 > container.clientWidth) {
+                    title.classList.add('animate');
+                } else {
+                    title.classList.remove('animate');
+                }
+            });
+        }
+
+        applyMarquee();
+        window.addEventListener('resize', applyMarquee);
+        window.addEventListener('load', applyMarquee);
+    });
+</script>
+{% endblock %}

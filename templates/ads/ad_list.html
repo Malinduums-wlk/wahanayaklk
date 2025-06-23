@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Browse Vehicle Ads{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 60vw;
+        width: 60vw;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        text-align: left;
+    }
+
+    .vehicle-card {
+        background: #f8f9fa;
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .vehicle-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .vehicle-card .image-container {
+        position: relative;
+        padding-top: 66.67%;
+        overflow: hidden;
+        border-radius: 0;
+    }
+
+    .vehicle-card .image-container img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .vehicle-card .listing-date {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 0.25rem 0.75rem;
+        border-radius: 0 0 12px 0;
+        font-size: 0.8rem;
+        color: #666;
+    }
+
+    .vehicle-card .favorite-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .vehicle-card .favorite-btn:hover {
+        background: #fff;
+        transform: scale(1.1);
+    }
+
+    .vehicle-card .favorite-btn.active i {
+        color: #dc3545;
+    }
+
+    .vehicle-card .card-body {
+        padding: 1rem;
+    }
+
+    .vehicle-card .title-price {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+        gap: 1rem;
+    }
+
+    .vehicle-card .title-container {
+        flex: 0 0 50%;
+        width: 50%;
+        max-width: 50%;
+        overflow: hidden;
+    }
+
+    .vehicle-card .vehicle-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0;
+        color: #333;
+        white-space: nowrap;
+        display: block;
+    }
+
+    .vehicle-card .vehicle-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #28a745;
+        white-space: nowrap;
+    }
+
+    .vehicle-card .vehicle-details {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .vehicle-card .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .vehicle-card .detail-item i {
+        font-size: 0.9rem;
+        width: 1rem;
+        text-align: center;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 48em) {
+        .container {
+            max-width: 100%;
+            padding: 1rem;
+        }
+    }
+
+    @keyframes marquee {
+        from { transform: translateX(0); }
+        to { transform: translateX(var(--scroll-distance)); }
+    }
+
+    .vehicle-card .vehicle-title.animate {
+        --scroll-distance: 0px;
+        animation: marquee 12s linear infinite;
+        position: relative;
+        padding-right: 2rem;
+    }
+
+    .vehicle-card .vehicle-title.animate::after {
+        content: attr(data-text);
+        position: absolute;
+        left: 100%;
+        padding-left: 2rem;
+        white-space: nowrap;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">Browse Vehicle Ads</h1>
+        {% if user.is_authenticated %}
+        <a href="{% url 'ads:create' %}" class="btn btn-primary">Post New Ad</a>
+        {% endif %}
+    </div>
+
+    {% if not vehicle_list %}
+    <div class="empty-state">
+        <h3>No vehicles listed yet</h3>
+        <p>Be the first to post a vehicle ad!</p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'ads:create' %}" class="btn btn-primary btn-lg">Post Ad</a>
+        {% else %}
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Sign In to Post</a>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="row g-4">
+        {% for vehicle in vehicle_list %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="vehicle-card">
+                <div class="image-container">
+                    {% if vehicle.images.first %}
+                    <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.title }}">
+                    {% else %}
+                    <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
+                    {% endif %}
+                    <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
+                    <button class="favorite-btn {% if vehicle in user.favorites.all %}active{% endif %}" 
+                            data-vehicle-id="{{ vehicle.id }}"
+                            onclick="toggleFavorite(this)">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="title-price">
+                        <div class="title-container">
+                            <div class="marquee-wrapper">
+                                <h3 class="marquee-content vehicle-title">
+                                    <span>{{ vehicle.make }} {{ vehicle.model }}</span>
+                                    <span>{{ vehicle.make }} {{ vehicle.model }}</span>
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
+                    </div>
+                    <div class="card-divider"></div>
+                    <div class="vehicle-details">
+                        {% if vehicle.year %}
+                        <div class="detail-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{{ vehicle.year }}</span>
+                        </div>
+                        {% endif %}
+                        {% if vehicle.mileage %}
+                        <div class="detail-item">
+                            <i class="fas fa-road"></i>
+                            <span>{{ vehicle.mileage }} km</span>
+                        </div>
+                        {% endif %}
+                        <div class="detail-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ vehicle.location }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const galleries = document.querySelectorAll('.vehicle-gallery');
+    const isMobile = window.innerWidth < 768;
+
+    galleries.forEach(gallery => {
+        const container = gallery.querySelector('.gallery-container');
+        const dots = gallery.querySelector('.gallery-dots');
+        const prevBtn = gallery.querySelector('.gallery-nav.prev');
+        const nextBtn = gallery.querySelector('.gallery-nav.next');
+        
+        if (!container || !dots) return;
+
+        let startX;
+        let currentX;
+        let currentIndex = 0;
+        const itemCount = dots.children.length;
+
+        function navigateToIndex(index, animate = true) {
+            currentIndex = Math.max(0, Math.min(index, itemCount - 1));
+            
+            if (!animate || isMobile) {
+                container.style.transition = 'none';
+                container.style.transform = `translateX(-${currentIndex * 100}%)`;
+                // Force reflow to ensure the transition is removed
+                container.offsetHeight;
+            } else {
+                container.style.transition = 'transform 0.3s ease';
+                container.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }
+            
+            updateDots();
+        }
+
+        function updateDots() {
+            Array.from(dots.children).forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        // Touch/Mouse events for swipe
+        function handleDragStart(e) {
+            startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+            container.style.transition = 'none';
+            
+            if (e.type === 'mousedown') {
+                document.addEventListener('mousemove', handleDragMove);
+                document.addEventListener('mouseup', handleDragEnd);
+            }
+        }
+
+        function handleDragMove(e) {
+            if (!startX) return;
+            currentX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+            const diff = currentX - startX;
+            const offset = -100 * currentIndex + (diff / container.offsetWidth) * 100;
+            container.style.transform = `translateX(${offset}%)`;
+        }
+
+        function handleDragEnd(e) {
+            if (!startX || !currentX) return;
+            const diff = currentX - startX;
+            const threshold = container.offsetWidth * 0.2;
+
+            if (Math.abs(diff) > threshold) {
+                if (diff > 0 && currentIndex > 0) {
+                    navigateToIndex(currentIndex - 1);
+                } else if (diff < 0 && currentIndex < itemCount - 1) {
+                    navigateToIndex(currentIndex + 1);
+                } else {
+                    navigateToIndex(currentIndex);
+                }
+            } else {
+                navigateToIndex(currentIndex);
+            }
+
+            startX = null;
+            currentX = null;
+
+            if (e.type === 'mouseup') {
+                document.removeEventListener('mousemove', handleDragMove);
+                document.removeEventListener('mouseup', handleDragEnd);
+            }
+        }
+
+        // Event Listeners
+        container.addEventListener('touchstart', handleDragStart);
+        container.addEventListener('touchmove', handleDragMove);
+        container.addEventListener('touchend', handleDragEnd);
+        container.addEventListener('mousedown', handleDragStart);
+
+        // Navigation buttons
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                navigateToIndex(currentIndex - 1, !isMobile);
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                navigateToIndex(currentIndex + 1, !isMobile);
+            });
+        }
+
+        // Dot navigation
+        dots.addEventListener('click', e => {
+            const dot = e.target.closest('.dot');
+            if (!dot) return;
+            navigateToIndex(parseInt(dot.dataset.index), !isMobile);
+        });
+
+        // Prevent image dragging
+        gallery.querySelectorAll('img').forEach(img => {
+            img.addEventListener('dragstart', e => e.preventDefault());
+        });
+    });
+
+    function applyMarquee() {
+        const titles = document.querySelectorAll('.marquee-content');
+        titles.forEach(title => {
+            const container = title.closest('.title-container');
+            const firstSpan = title.querySelector('span');
+            
+            // Check if the first span's width exceeds container width
+            if (firstSpan.offsetWidth > container.offsetWidth) {
+                title.classList.add('animate');
+            } else {
+                title.classList.remove('animate');
+            }
+        });
+    }
+
+    // Apply on load and resize
+    window.addEventListener('load', applyMarquee);
+    window.addEventListener('resize', applyMarquee);
+});
+</script>
+{% endblock %} 

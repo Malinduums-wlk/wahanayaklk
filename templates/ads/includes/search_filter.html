@@ -1,0 +1,116 @@
+{% load widget_tweaks %}
+<form id="searchForm" action="{% url 'ads:search' %}" method="get" onsubmit="return handleSearchSubmit(event)">
+    <div class="row g-3">
+        <div class="col-md">
+            <select class="form-select" name="make" id="makeSelect">
+                <option value="" {% if not search_params.make %}selected{% endif %}>Make</option>
+                <option value="mazda" {% if search_params.make == 'mazda' %}selected{% endif %}>Mazda</option>
+                <option value="toyota" {% if search_params.make == 'toyota' %}selected{% endif %}>Toyota</option>
+                <option value="bmw" {% if search_params.make == 'bmw' %}selected{% endif %}>BMW</option>
+                <option value="nissan" {% if search_params.make == 'nissan' %}selected{% endif %}>Nissan</option>
+                <option value="honda" {% if search_params.make == 'honda' %}selected{% endif %}>Honda</option>
+                <option value="mercedes" {% if search_params.make == 'mercedes' %}selected{% endif %}>Mercedes-Benz</option>
+                <option value="audi" {% if search_params.make == 'audi' %}selected{% endif %}>Audi</option>
+                <option value="volkswagen" {% if search_params.make == 'volkswagen' %}selected{% endif %}>Volkswagen</option>
+                <option value="ford" {% if search_params.make == 'ford' %}selected{% endif %}>Ford</option>
+                <option value="hyundai" {% if search_params.make == 'hyundai' %}selected{% endif %}>Hyundai</option>
+            </select>
+        </div>
+
+        <div class="col-md">
+            <input type="text" class="form-control" name="model" placeholder="Model" value="{{ search_params.model|default:'' }}">
+        </div>
+
+        <div class="col-md">
+            <select class="form-select" name="condition">
+                <option value="any" {% if not search_params.condition or search_params.condition == 'any' %}selected{% endif %}>Any Condition</option>
+                <option value="brand_new" {% if search_params.condition == 'brand_new' %}selected{% endif %}>Brand New</option>
+                <option value="used" {% if search_params.condition == 'used' %}selected{% endif %}>Used (Registered)</option>
+                <option value="recondition" {% if search_params.condition == 'recondition' %}selected{% endif %}>Recondition (Unregistered)</option>
+            </select>
+        </div>
+
+        <div class="col-md">
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="priceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Price
+                </button>
+                <div class="dropdown-menu p-3" style="width: 300px;">
+                    <div class="mb-3">
+                        <input type="number" class="form-control" name="min_price" placeholder="Min Price" value="{{ search_params.min_price|default:'' }}">
+                    </div>
+                    <div class="mb-3">
+                        <input type="number" class="form-control" name="max_price" placeholder="Max Price" value="{{ search_params.max_price|default:'' }}">
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md">
+            <select class="form-select" name="city">
+                <option value="any" {% if not search_params.city or search_params.city == 'any' %}selected{% endif %}>Any City</option>
+                <optgroup label="Western Province">
+                    <option value="colombo" {% if search_params.city == 'colombo' %}selected{% endif %}>Colombo</option>
+                    <option value="gampaha" {% if search_params.city == 'gampaha' %}selected{% endif %}>Gampaha</option>
+                    <option value="kalutara" {% if search_params.city == 'kalutara' %}selected{% endif %}>Kalutara</option>
+                </optgroup>
+                <optgroup label="Central Province">
+                    <option value="kandy" {% if search_params.city == 'kandy' %}selected{% endif %}>Kandy</option>
+                    <option value="matale" {% if search_params.city == 'matale' %}selected{% endif %}>Matale</option>
+                    <option value="nuwara_eliya" {% if search_params.city == 'nuwara_eliya' %}selected{% endif %}>Nuwara Eliya</option>
+                </optgroup>
+                <!-- Add more cities as needed -->
+            </select>
+        </div>
+
+        <div class="col-md">
+            <select class="form-select" name="fuel">
+                <option value="any" {% if not search_params.fuel or search_params.fuel == 'any' %}selected{% endif %}>Any Fuel</option>
+                <option value="petrol" {% if search_params.fuel == 'petrol' %}selected{% endif %}>Petrol</option>
+                <option value="diesel" {% if search_params.fuel == 'diesel' %}selected{% endif %}>Diesel</option>
+                <option value="electric" {% if search_params.fuel == 'electric' %}selected{% endif %}>Electric</option>
+                <option value="hybrid" {% if search_params.fuel == 'hybrid' %}selected{% endif %}>Hybrid</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="submit" class="btn search-btn">
+        <i class="fas fa-search"></i>
+    </button>
+</form>
+
+<script>
+function handleSearchSubmit(event) {
+    event.preventDefault();
+    
+    const form = event.target;
+    const formData = new FormData(form);
+    const searchParams = [];
+    const currentPath = window.location.pathname;
+    
+    // Build clean query parameters
+    for (const [key, value] of formData.entries()) {
+        if (value && value !== 'any' && value !== '') {
+            searchParams.push(`${key}=${value}`);
+        }
+    }
+    
+    // Determine the base URL based on current path
+    let baseUrl = '/ads/search/';
+    if (currentPath.includes('/search/') && currentPath !== '/ads/search/') {
+        // We're on a vehicle type page, keep the vehicle type in the URL
+        baseUrl = currentPath;
+    }
+    
+    // Build the final URL
+    let url = baseUrl;
+    if (searchParams.length > 0) {
+        url += '?' + searchParams.join('&');
+    }
+    
+    // Navigate to the new URL
+    window.location.href = url;
+    return false;
+}
+</script> 

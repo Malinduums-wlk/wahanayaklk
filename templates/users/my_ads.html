@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Ads{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        max-width: 60vw;
+        width: 60vw;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        text-align: left;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        margin: 2rem 0 1rem;
+        color: #333;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-approved {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    @media (max-width: 48em) {
+        .container {
+            max-width: 100%;
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">My Ads</h1>
+        <a href="{% url 'ads:create' %}" class="btn btn-primary">Post an Ad</a>
+    </div>
+
+    <!-- Pending Ads Section -->
+    <h2 class="section-title">Pending Review</h2>
+    {% if pending_ads %}
+    <div class="vehicle-grid">
+        {% for vehicle in pending_ads %}
+        <div class="vehicle-card">
+            <div class="image-container">
+                {% if vehicle.images.first %}
+                <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.title }}">
+                {% else %}
+                <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
+                {% endif %}
+                <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
+                <a href="{% url 'ads:edit' vehicle.id %}" class="edit-btn" title="Edit Ad">
+                    <i class="fas fa-edit"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="title-price">
+                    <div class="title-container">
+                        <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
+                    </div>
+                    <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
+                </div>
+                <div class="card-divider"></div>
+                <div class="vehicle-details">
+                    {% if vehicle.year %}<div class="detail-item"><i class="fas fa-calendar-alt"></i><span>{{ vehicle.year }}</span></div>{% endif %}
+                    {% if vehicle.mileage %}<div class="detail-item"><i class="fas fa-road"></i><span>{{ vehicle.mileage }} km</span></div>{% endif %}
+                    <div class="detail-item"><i class="fas fa-map-marker-alt"></i><span>{{ vehicle.location }}</span></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="mb-0">No pending ads</p>
+    </div>
+    {% endif %}
+
+    <!-- Approved Ads Section -->
+    <h2 class="section-title">Approved Ads</h2>
+    {% if approved_ads %}
+    <div class="vehicle-grid">
+        {% for vehicle in approved_ads %}
+        <div class="vehicle-card">
+            <div class="image-container">
+                {% if vehicle.images.first %}
+                <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.title }}">
+                {% else %}
+                <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
+                {% endif %}
+                <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
+                <a href="{% url 'ads:edit' vehicle.id %}" class="edit-btn" title="Edit Ad">
+                    <i class="fas fa-edit"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="title-price">
+                    <div class="title-container">
+                        <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
+                    </div>
+                    <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
+                </div>
+                <div class="card-divider"></div>
+                <div class="vehicle-details">
+                    {% if vehicle.year %}<div class="detail-item"><i class="fas fa-calendar-alt"></i><span>{{ vehicle.year }}</span></div>{% endif %}
+                    {% if vehicle.mileage %}<div class="detail-item"><i class="fas fa-road"></i><span>{{ vehicle.mileage }} km</span></div>{% endif %}
+                    <div class="detail-item"><i class="fas fa-map-marker-alt"></i><span>{{ vehicle.location }}</span></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="mb-0">No approved ads</p>
+    </div>
+    {% endif %}
+
+    <!-- Rejected Ads Section -->
+    <h2 class="section-title">Rejected Ads</h2>
+    {% if rejected_ads %}
+    <div class="vehicle-grid">
+        {% for vehicle in rejected_ads %}
+        <div class="vehicle-card">
+            <div class="image-container">
+                {% if vehicle.images.first %}
+                <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.title }}">
+                {% else %}
+                <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
+                {% endif %}
+                <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
+                <a href="{% url 'ads:edit' vehicle.id %}" class="edit-btn" title="Edit Ad">
+                    <i class="fas fa-edit"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="title-price">
+                    <div class="title-container">
+                        <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
+                    </div>
+                    <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
+                </div>
+                <div class="card-divider"></div>
+                <div class="vehicle-details">
+                    {% if vehicle.year %}<div class="detail-item"><i class="fas fa-calendar-alt"></i><span>{{ vehicle.year }}</span></div>{% endif %}
+                    {% if vehicle.mileage %}<div class="detail-item"><i class="fas fa-road"></i><span>{{ vehicle.mileage }} km</span></div>{% endif %}
+                    <div class="detail-item"><i class="fas fa-map-marker-alt"></i><span>{{ vehicle.location }}</span></div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="mb-0">No rejected ads</p>
+    </div>
+    {% endif %}
+
+    {% if not pending_ads and not approved_ads and not rejected_ads %}
+    <div class="text-center mt-4">
+        <p>You haven't posted any ads yet.</p>
+        <a href="{% url 'ads:create' %}" class="btn btn-primary">Post Your First Ad</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const galleries = document.querySelectorAll('.vehicle-gallery');
+    const isMobile = window.innerWidth < 768;
+
+    galleries.forEach(gallery => {
+        const container = gallery.querySelector('.gallery-container');
+        const dots = gallery.querySelector('.gallery-dots');
+        const prevBtn = gallery.querySelector('.gallery-nav.prev');
+        const nextBtn = gallery.querySelector('.gallery-nav.next');
+        
+        if (!container || !dots) return;
+
+        let startX;
+        let currentX;
+        let currentIndex = 0;
+        const itemCount = dots.children.length;
+
+        function navigateToIndex(index, animate = true) {
+            currentIndex = Math.max(0, Math.min(index, itemCount - 1));
+            
+            if (!animate || isMobile) {
+                container.style.transition = 'none';
+                container.style.transform = `translateX(-${currentIndex * 100}%)`;
+                // Force reflow to ensure the transition is removed
+                container.offsetHeight;
+            } else {
+                container.style.transition = 'transform 0.3s ease';
+                container.style.transform = `translateX(-${currentIndex * 100}%)`;
+            }
+            
+            updateDots();
+        }
+
+        function updateDots() {
+            Array.from(dots.children).forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        // Touch/Mouse events for swipe
+        function handleDragStart(e) {
+            startX = e.type === 'mousedown' ? e.clientX : e.touches[0].clientX;
+            container.style.transition = 'none';
+            
+            if (e.type === 'mousedown') {
+                document.addEventListener('mousemove', handleDragMove);
+                document.addEventListener('mouseup', handleDragEnd);
+            }
+        }
+
+        function handleDragMove(e) {
+            if (!startX) return;
+            currentX = e.type === 'mousemove' ? e.clientX : e.touches[0].clientX;
+            const diff = currentX - startX;
+            const offset = -100 * currentIndex + (diff / container.offsetWidth) * 100;
+            container.style.transform = `translateX(${offset}%)`;
+        }
+
+        function handleDragEnd(e) {
+            if (!startX || !currentX) return;
+            const diff = currentX - startX;
+            const threshold = container.offsetWidth * 0.2;
+
+            if (Math.abs(diff) > threshold) {
+                if (diff > 0 && currentIndex > 0) {
+                    navigateToIndex(currentIndex - 1);
+                } else if (diff < 0 && currentIndex < itemCount - 1) {
+                    navigateToIndex(currentIndex + 1);
+                } else {
+                    navigateToIndex(currentIndex);
+                }
+            } else {
+                navigateToIndex(currentIndex);
+            }
+
+            startX = null;
+            currentX = null;
+
+            if (e.type === 'mouseup') {
+                document.removeEventListener('mousemove', handleDragMove);
+                document.removeEventListener('mouseup', handleDragEnd);
+            }
+        }
+
+        // Event Listeners
+        container.addEventListener('touchstart', handleDragStart);
+        container.addEventListener('touchmove', handleDragMove);
+        container.addEventListener('touchend', handleDragEnd);
+        container.addEventListener('mousedown', handleDragStart);
+
+        // Navigation buttons
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                navigateToIndex(currentIndex - 1, !isMobile);
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                navigateToIndex(currentIndex + 1, !isMobile);
+            });
+        }
+
+        // Dot navigation
+        dots.addEventListener('click', e => {
+            const dot = e.target.closest('.dot');
+            if (!dot) return;
+            navigateToIndex(parseInt(dot.dataset.index), !isMobile);
+        });
+
+        // Prevent image dragging
+        gallery.querySelectorAll('img').forEach(img => {
+            img.addEventListener('dragstart', e => e.preventDefault());
+        });
+    });
+
+    /* Title marquee handled globally in vehicle-card.js */
+});
+</script>
+{% endblock %} 

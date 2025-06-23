@@ -1,0 +1,1176 @@
+{% extends 'base.html' %}
+{% load static ads_extras %}
+
+{% block title %}{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .vehicle-detail {
+        padding: 0;
+        width: 60vw;
+        margin: 0 auto;
+        min-width: calc(1024px + 40px);
+    }
+
+    /* Modify container styles to keep navbar width but allow content width */
+    .vehicle-detail .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0;
+        margin: 0 auto;
+    }
+
+    /* Keep navbar container at 60vw */
+    .navbar .container {
+        width: 60vw !important;
+        max-width: 60vw !important;
+        padding: 0 1rem;
+        margin: 0 auto;
+    }
+
+    .header {
+        padding: 2rem 0;
+    }
+
+    .vehicle-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .post-date {
+        color: #666;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .gallery-container {
+        position: relative;
+        width: 100%;
+        background: transparent;
+    }
+
+    .image-gallery {
+        width: 100%;
+        display: flex;
+        overflow: hidden;
+        scroll-behavior: smooth;
+        position: relative;
+    }
+
+    .image-gallery img {
+        width: 25%;
+        height: 300px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    /* Center images when there are fewer than the max columns */
+    .center-images {
+        justify-content: center;
+    }
+
+    .gallery-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        z-index: 10;
+        border: none;
+        transition: background 0.3s;
+    }
+
+    .gallery-arrow:hover {
+        background: rgba(0, 0, 0, 0.8);
+    }
+
+    .gallery-arrow.prev {
+        left: 20px;
+    }
+
+    .gallery-arrow.next {
+        right: 20px;
+    }
+
+    .specs-bar {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+
+    .spec-item {
+        background: #3f51b5;
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    .spec-item i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .spec-value {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .content-section {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .description-section {
+        background: #fff;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .description-section p {
+        white-space: pre-line;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+    }
+
+    .price-section {
+        background: #f8f9fa;
+        border-radius: 1rem;
+        padding: 2rem;
+        position: sticky;
+        top: 1rem;
+    }
+
+    .price {
+        font-size: 2rem;
+        color: #3f51b5;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    .contact-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        width: 100%;
+    }
+
+    .contact-button {
+        position: relative;
+        display: block;
+        width: 100%;
+    }
+
+    .contact-button .btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        font-weight: 500;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .whatsapp-btn {
+        background-color: #25D366;
+        border-color: #25D366;
+        color: white;
+    }
+
+    .whatsapp-btn:hover {
+        background-color: #128C7E;
+        border-color: #128C7E;
+        color: white;
+    }
+
+    .call-btn {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+        font-size: 1.1rem;
+    }
+
+    .call-btn:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+        color: white;
+    }
+
+    .gallery-pagination {
+        position: absolute;
+        bottom: 15px;
+        left: 0;
+        right: 0;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        z-index: 10;
+    }
+
+    .pagination-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .pagination-dot.active {
+        background: #fff;
+        transform: scale(1.2);
+    }
+
+    .features-section {
+        background: #fff;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-top: 1rem;
+    }
+
+    .features-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1.5rem;
+    }
+
+    .features-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: flex-start;
+    }
+
+    .feature-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.25rem;
+        background: #f8f9fa;
+        border-radius: 2rem;
+        white-space: nowrap;
+        cursor: default;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transform: translateY(0);
+        transition: all 0.2s ease-in-out;
+    }
+
+
+    .feature-item i {
+        color: #3f51b5;
+        font-size: 1.1rem;
+        transition: transform 0.2s ease;
+    }
+
+
+    .feature-item span {
+        color: #333;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    @media (max-width: 1024px) {
+        .vehicle-detail {
+            width: calc(100% - 40px);
+            min-width: auto;
+            margin: 0 20px;
+        }
+
+        .gallery-pagination {
+            display: flex;
+        }
+
+        .image-gallery {
+            touch-action: pan-y pinch-zoom;
+        }
+
+        .image-gallery img {
+            width: 33.333%;
+            height: 300px;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .container {
+            max-width: 100% !important;
+            width: calc(100% - 40px) !important;
+            margin-left: 20px;
+            margin-right: 20px;
+            padding: 0;
+        }
+
+        .specs-bar {
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: 1fr;
+            gap: 15px;
+            margin: 2rem 0;
+        }
+
+        .content-section {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .description-section {
+            width: 100%;
+        }
+
+        .price-section {
+            width: 100%;
+            position: static;
+            order: -1;
+            margin-bottom: 1rem;
+        }
+
+        .image-gallery img {
+            width: 33.333%;
+            height: 300px;
+        }
+
+        .spec-item {
+            padding: 1.25rem;
+        }
+
+        .spec-item i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .spec-value {
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 10px;
+        }
+
+        .header {
+            padding: 1rem 10px;
+        }
+
+        .vehicle-title {
+            font-size: 1.75rem;
+        }
+
+        .specs-bar {
+            grid-template-columns: repeat(3, 1fr);
+            margin: 1rem 0;
+            gap: 10px;
+        }
+
+        .spec-item {
+            padding: 1rem;
+        }
+
+        .spec-item i {
+            font-size: 1.25rem;
+        }
+
+        .content-section {
+            margin: 1rem 0;
+            gap: 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .description-section {
+            padding: 1.5rem;
+            width: 100%;
+            order: 2;
+        }
+
+        .price-section {
+            width: 100%;
+            margin: 0;
+            order: 1;
+        }
+
+        .image-gallery img {
+            width: 100%;
+            height: 225px;
+        }
+
+        .gallery-arrow {
+            width: 40px;
+            height: 40px;
+        }
+
+        .gallery-arrow.prev {
+            left: 10px;
+        }
+
+        .gallery-arrow.next {
+            right: 10px;
+        }
+
+        .price {
+            font-size: 1.75rem;
+        }
+
+        .contact-button,
+        .phone-button {
+            padding: 0.875rem;
+            font-size: 1rem;
+        }
+
+        .features-section {
+            padding: 1.5rem;
+        }
+
+        .features-grid {
+            gap: 0.625rem;
+        }
+
+        .feature-item {
+            padding: 0.625rem 1rem;
+        }
+
+        .feature-item i {
+            font-size: 1rem;
+        }
+
+        .feature-item span {
+            font-size: 0.875rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .specs-bar {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+        }
+
+        .vehicle-title {
+            font-size: 1.5rem;
+        }
+
+        .image-gallery img {
+            height: 200px;
+        }
+
+        .gallery-arrow {
+            width: 35px;
+            height: 35px;
+            font-size: 0.875rem;
+        }
+
+        .description-section,
+        .price-section {
+            padding: 1.25rem;
+        }
+
+        .price {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .spec-item {
+            padding: 0.875rem;
+        }
+
+        .spec-value {
+            font-size: 0.8rem;
+        }
+
+        .features-section {
+            padding: 1.25rem;
+        }
+
+        .features-grid {
+            gap: 0.5rem;
+        }
+
+        .feature-item {
+            padding: 0.5rem 0.875rem;
+        }
+    }
+
+    /* Full View Modal Styles */
+    .full-view-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .full-view-modal.active {
+        display: flex;
+        opacity: 1;
+    }
+
+    .full-view-content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .full-view-image {
+        max-width: 90%;
+        max-height: 90vh;
+        object-fit: contain;
+    }
+
+    .full-view-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        z-index: 2;
+    }
+
+    .full-view-nav:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .full-view-nav.prev {
+        left: 20px;
+    }
+
+    .full-view-nav.next {
+        right: 20px;
+    }
+
+    .full-view-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        z-index: 2;
+    }
+
+    .full-view-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .full-view-counter {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 1rem;
+        background: rgba(0, 0, 0, 0.5);
+        padding: 5px 15px;
+        border-radius: 20px;
+    }
+
+    .image-gallery img {
+        cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+        .full-view-nav {
+            width: 40px;
+            height: 40px;
+            font-size: 1.25rem;
+        }
+
+        .full-view-close {
+            width: 35px;
+            height: 35px;
+            font-size: 1.25rem;
+        }
+    }
+
+    .seller-info {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .seller-profile-pic {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .seller-profile-pic-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #a78bfa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .seller-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #333;
+    }
+
+    .premium-seller-info {
+        margin-bottom: 1.5rem;
+    }
+
+    .shop-cover {
+        width: 100%;
+        padding-top: 50%; /* 4:2 aspect ratio */
+        position: relative;
+    }
+
+    .shop-cover img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .premium-seller-info .seller-info {
+        padding: 1rem 0;
+        margin-bottom: 0;
+    }
+
+    .seller-badges {
+        margin-top: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .seller-badges .badge {
+        padding: 0.4rem 0.8rem;
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+
+    .seller-name {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="vehicle-detail">
+    <div class="header">
+        <h1 class="vehicle-title">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h1>
+        <div class="post-date">
+            <i class="fas fa-calendar"></i>
+            {{ vehicle.created_at|date:"F d, Y" }}
+        </div>
+    </div>
+</div>
+
+<div class="gallery-container">
+    <button class="gallery-arrow prev" onclick="scrollGallery(-1)">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="gallery-arrow next" onclick="scrollGallery(1)">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+    <div class="image-gallery {% if vehicle.images.all|length < 4 %}center-images{% endif %}" id="imageGallery">
+        {% if vehicle.images.all %}
+            {% for image in vehicle.images.all %}
+            <img src="{{ image.image.url }}" alt="{{ vehicle }}" loading="lazy">
+            {% endfor %}
+        {% else %}
+            <div class="bg-light text-center py-5" style="width: 100%">
+                <i class="fas fa-car fa-3x text-muted"></i>
+            </div>
+        {% endif %}
+    </div>
+    <div class="gallery-pagination" id="galleryPagination">
+        {% if vehicle.images.all %}
+            {% for image in vehicle.images.all %}
+            <div class="pagination-dot {% if forloop.first %}active{% endif %}"></div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+
+<div class="vehicle-detail">
+    {% if user.is_superuser and vehicle.status != 'approved' %}
+    <div class="alert alert-warning mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <strong>Review Mode:</strong> This ad is currently <span class="badge bg-{{ vehicle.status|yesno:'success,warning,danger' }}">{{ vehicle.status }}</span>
+            </div>
+            <div>
+                <form method="post" action="{% url 'users:manage_ad' vehicle.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="approve" class="btn btn-success btn-sm me-2">
+                        Approve Ad
+                    </button>
+                    <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">
+                        Reject Ad
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    <div class="specs-bar">
+        <div class="spec-item">
+            <i class="fas fa-calendar"></i>
+            <div class="spec-value">{{ vehicle.year }}</div>
+        </div>
+        <div class="spec-item">
+            <i class="fas fa-road"></i>
+            <div class="spec-value">{{ vehicle.mileage|default:"0" }}km</div>
+        </div>
+        <div class="spec-item">
+            <i class="fas fa-cog"></i>
+            <div class="spec-value">{{ vehicle.transmission }}</div>
+        </div>
+        <div class="spec-item">
+            <i class="fas fa-gas-pump"></i>
+            <div class="spec-value">{{ vehicle.fuel_type }}</div>
+        </div>
+        <div class="spec-item">
+            <i class="fas fa-tachometer-alt"></i>
+            <div class="spec-value">{{ vehicle.engine }} cc</div>
+        </div>
+        <div class="spec-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <div class="spec-value">{{ vehicle.location }}</div>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <div>
+            {% if vehicle.description %}
+            <div class="description-section">
+                <p style="text-align: left;">{{ vehicle.description }}</p>
+            </div>
+            {% endif %}
+
+            <div class="features-section">
+                <h3 class="features-title">Features</h3>
+                <div class="features-grid">
+                    {% if vehicle.air_condition %}
+                    <div class="feature-item">
+                        <i class="fas fa-snowflake"></i>
+                        <span>Air Conditioning</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.power_windows %}
+                    <div class="feature-item">
+                        <i class="fas fa-window-restore"></i>
+                        <span>Power Windows</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.power_mirrors %}
+                    <div class="feature-item">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Power Mirrors</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.power_seats %}
+                    <div class="feature-item">
+                        <i class="fas fa-chair"></i>
+                        <span>Power Seats</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.power_steering %}
+                    <div class="feature-item">
+                        <i class="fas fa-dharmachakra"></i>
+                        <span>Power Steering</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.sun_roof %}
+                    <div class="feature-item">
+                        <i class="fas fa-sun"></i>
+                        <span>Sun Roof</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.abs %}
+                    <div class="feature-item">
+                        <i class="fas fa-car"></i>
+                        <span>ABS</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.led %}
+                    <div class="feature-item">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>LED Lights</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.reverse_camera %}
+                    <div class="feature-item">
+                        <i class="fas fa-video"></i>
+                        <span>Reverse Camera</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if vehicle.air_bags %}
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Air Bags</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="price-section">
+            {% if vehicle.user.userprofile.is_premium and vehicle.user.shop %}
+            <div class="premium-seller-info">
+                {% if vehicle.user.shop.cover_photo %}
+                <div class="shop-cover">
+                    <img src="{{ vehicle.user.shop.cover_photo.url }}" alt="Shop Cover">
+                </div>
+                {% endif %}
+                <div class="seller-info">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if vehicle.user.userprofile.profile_picture %}
+                        <img src="{{ vehicle.user.userprofile.profile_picture.url }}" alt="Seller Profile" class="seller-profile-pic">
+                        {% else %}
+                        <div class="seller-profile-pic-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+                        <div class="seller-details ms-3">
+                            <div class="text-muted small">sell by</div>
+                            <div class="seller-name">
+                                {% if vehicle.user.userprofile.listing_type == 'company' %}
+                                    <a href="{% url 'users:shop_profile' vehicle.user.id %}" class="text-decoration-none text-dark">
+                                        {{ vehicle.user.shop.company_name|default:vehicle.user.get_full_name }}
+                                    </a>
+                                {% else %}
+                                    {{ vehicle.user.get_full_name|default:vehicle.user.username }}
+                                {% endif %}
+                            </div>
+                            <div class="seller-badges">
+                                {% if vehicle.user.userprofile.has_verified_badge %}
+                                <span class="badge bg-success">Verified</span>
+                                {% endif %}
+                                {% if vehicle.user.userprofile.has_trusted_badge %}
+                                <span class="badge bg-info">Trusted</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="seller-info">
+                <div class="d-flex align-items-center mb-3">
+                    {% if vehicle.user.userprofile.profile_picture %}
+                    <img src="{{ vehicle.user.userprofile.profile_picture.url }}" alt="Seller Profile" class="seller-profile-pic">
+                    {% else %}
+                    <div class="seller-profile-pic-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    {% endif %}
+                    <div class="seller-details ms-3">
+                        <div class="text-muted small">sell by</div>
+                        <div class="seller-name">{{ vehicle.user.get_full_name|default:vehicle.user.username }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            <div class="price">Rs. {{ vehicle.price|floatformat:0 }}</div>
+            <div class="contact-container">
+                {% if vehicle.whatsapp_number %}
+                <div class="contact-button">
+                    <a href="https://wa.me/{{ vehicle.whatsapp_number|to_wa }}" target="_blank" class="btn whatsapp-btn">
+                        <i class="fab fa-whatsapp"></i>
+                        Chat via WhatsApp
+                    </a>
+                </div>
+                {% endif %}
+                
+                <div class="contact-button">
+                    <a href="tel:{{ vehicle.phone_number }}" class="btn call-btn">
+                        <i class="fas fa-phone"></i>
+                        {{ vehicle.phone_number }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Full View Modal -->
+<div class="full-view-modal" id="fullViewModal">
+    <div class="full-view-content">
+        <img src="" alt="" class="full-view-image" id="fullViewImage">
+        <button class="full-view-nav prev" id="fullViewPrev">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="full-view-nav next" id="fullViewNext">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <button class="full-view-close" id="fullViewClose">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="full-view-counter" id="fullViewCounter"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentIndex = 0;
+let startX = null;
+let currentX = null;
+const gallery = document.getElementById('imageGallery');
+const isMobileOrTablet = window.innerWidth <= 1024;
+
+function scrollGallery(direction) {
+    const imgWidth = gallery.offsetWidth * (window.innerWidth <= 768 ? 1 : window.innerWidth <= 1024 ? 0.333 : 0.25);
+    const totalImages = document.querySelectorAll('.image-gallery img').length;
+    
+    currentIndex = Math.max(0, Math.min(currentIndex + direction, totalImages - 1));
+    
+    gallery.scrollTo({
+        left: currentIndex * imgWidth,
+        behavior: 'smooth'
+    });
+    
+    updatePagination();
+    updateArrows();
+}
+
+function updatePagination() {
+    const dots = document.querySelectorAll('.pagination-dot');
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentIndex);
+    });
+}
+
+function updateArrows() {
+    const prevArrow = document.querySelector('.gallery-arrow.prev');
+    const nextArrow = document.querySelector('.gallery-arrow.next');
+    const totalImages = document.querySelectorAll('.image-gallery img').length;
+    
+    if (prevArrow && nextArrow) {
+        prevArrow.style.display = currentIndex <= 0 ? 'none' : 'flex';
+        nextArrow.style.display = currentIndex >= totalImages - 1 ? 'none' : 'flex';
+    }
+}
+
+if (isMobileOrTablet) {
+    gallery.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        gallery.style.transition = 'none';
+    }, { passive: true });
+
+    gallery.addEventListener('touchmove', (e) => {
+        if (!startX) return;
+        
+        currentX = e.touches[0].clientX;
+        const diff = currentX - startX;
+        const imgWidth = gallery.offsetWidth * (window.innerWidth <= 768 ? 1 : 0.333);
+        const currentOffset = currentIndex * imgWidth;
+        
+        gallery.scrollLeft = currentOffset - diff;
+    }, { passive: true });
+
+    gallery.addEventListener('touchend', (e) => {
+        if (!startX || !currentX) return;
+        
+        const diff = currentX - startX;
+        const imgWidth = gallery.offsetWidth * (window.innerWidth <= 768 ? 1 : 0.333);
+        const threshold = imgWidth * 0.2;
+        
+        if (Math.abs(diff) > threshold) {
+            if (diff > 0 && currentIndex > 0) {
+                currentIndex--;
+            } else if (diff < 0 && currentIndex < document.querySelectorAll('.image-gallery img').length - 1) {
+                currentIndex++;
+            }
+        }
+        
+        gallery.style.transition = 'all 0.3s ease';
+        gallery.scrollTo({
+            left: currentIndex * imgWidth,
+            behavior: 'smooth'
+        });
+        
+        startX = null;
+        currentX = null;
+        
+        updatePagination();
+        updateArrows();
+    });
+
+    // Handle scroll end for pagination update
+    gallery.addEventListener('scroll', () => {
+        clearTimeout(gallery.scrollTimeout);
+        gallery.scrollTimeout = setTimeout(() => {
+            const imgWidth = gallery.offsetWidth * (window.innerWidth <= 768 ? 1 : 0.333);
+            currentIndex = Math.round(gallery.scrollLeft / imgWidth);
+            updatePagination();
+            updateArrows();
+        }, 100);
+    });
+
+    // Initialize pagination dots click handlers
+    const dots = document.querySelectorAll('.pagination-dot');
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentIndex = index;
+            const imgWidth = gallery.offsetWidth * (window.innerWidth <= 768 ? 1 : 0.333);
+            gallery.scrollTo({
+                left: currentIndex * imgWidth,
+                behavior: 'smooth'
+            });
+            updatePagination();
+            updateArrows();
+        });
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updatePagination();
+    updateArrows();
+});
+
+// Full View Gallery
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('fullViewModal');
+    const modalImage = document.getElementById('fullViewImage');
+    const prevBtn = document.getElementById('fullViewPrev');
+    const nextBtn = document.getElementById('fullViewNext');
+    const closeBtn = document.getElementById('fullViewClose');
+    const counter = document.getElementById('fullViewCounter');
+    const galleryImages = document.querySelectorAll('.image-gallery img');
+    let currentFullViewIndex = 0;
+
+    function openFullView(index) {
+        currentFullViewIndex = index;
+        updateFullViewImage();
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFullView() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function updateFullViewImage() {
+        const image = galleryImages[currentFullViewIndex];
+        modalImage.src = image.src;
+        modalImage.alt = image.alt;
+        counter.textContent = `${currentFullViewIndex + 1} / ${galleryImages.length}`;
+        
+        // Update navigation buttons
+        prevBtn.style.display = currentFullViewIndex === 0 ? 'none' : 'flex';
+        nextBtn.style.display = currentFullViewIndex === galleryImages.length - 1 ? 'none' : 'flex';
+    }
+
+    // Open full view on image click
+    galleryImages.forEach((img, index) => {
+        img.addEventListener('click', () => openFullView(index));
+    });
+
+    // Navigation
+    prevBtn.addEventListener('click', () => {
+        if (currentFullViewIndex > 0) {
+            currentFullViewIndex--;
+            updateFullViewImage();
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        if (currentFullViewIndex < galleryImages.length - 1) {
+            currentFullViewIndex++;
+            updateFullViewImage();
+        }
+    });
+
+    // Close modal
+    closeBtn.addEventListener('click', closeFullView);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeFullView();
+        }
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (!modal.classList.contains('active')) return;
+        
+        switch(e.key) {
+            case 'ArrowLeft':
+                if (currentFullViewIndex > 0) {
+                    currentFullViewIndex--;
+                    updateFullViewImage();
+                }
+                break;
+            case 'ArrowRight':
+                if (currentFullViewIndex < galleryImages.length - 1) {
+                    currentFullViewIndex++;
+                    updateFullViewImage();
+                }
+                break;
+            case 'Escape':
+                closeFullView();
+                break;
+        }
+    });
+});
+</script>
+{% endblock %} 

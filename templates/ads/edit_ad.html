@@ -1,0 +1,684 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}Edit Vehicle Ad{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+        padding: 4rem 0;
+        margin-bottom: 3rem;
+    }
+
+    .hero-title {
+        color: #3f51b5;
+        font-size: 2.5rem;
+        font-weight: 600;
+    }
+
+    .hero-subtitle {
+        color: #5c6bc0;
+        font-size: 1rem;
+    }
+
+    .section-title {
+        color: #333;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Vehicle Type Box Styles */
+    .vehicle-type-box {
+        background: #585C73;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .vehicle-type-box label {
+        color: white;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .vehicle-type-box .form-select,
+    .vehicle-type-box .form-control {
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        height: 48px;
+    }
+
+    .vehicle-type-box .form-select:focus,
+    .vehicle-type-box .form-control:focus {
+        background-color: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
+        box-shadow: none;
+        color: white;
+    }
+
+    .vehicle-type-box .form-select option {
+        background-color: #585C73;
+        color: white;
+    }
+
+    /* Details Section Styles */
+    .details-section {
+        margin-top: 2rem;
+    }
+
+    .details-section .form-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .details-section .label-wrapper {
+        display: flex;
+        align-items: center;
+        width: 180px;
+        margin-right: 1rem;
+    }
+
+    .details-section .label-wrapper i {
+        margin-right: 0.5rem;
+        width: 20px;
+        color: #585C73;
+    }
+
+    .details-section label {
+        color: #333;
+        font-weight: 500;
+        margin-bottom: 0;
+    }
+
+    .details-section .form-control,
+    .details-section .form-select {
+        flex: 1;
+        background-color: #F0F0F0;
+        border: none;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        height: 48px;
+    }
+
+    .details-section .form-control:focus,
+    .details-section .form-select:focus {
+        box-shadow: none;
+        background-color: #F0F0F0;
+    }
+
+    .required-field::after {
+        content: "*";
+        color: #ff4081;
+        margin-left: 4px;
+    }
+
+    .feature-checkbox {
+        margin-bottom: 1rem;
+    }
+
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+        margin-right: 0.5rem;
+        border-radius: 0.25rem;
+        border: 2px solid #ccc;
+    }
+
+    .form-check-input:checked {
+        background-color: #3f51b5;
+        border-color: #3f51b5;
+    }
+
+    .form-check-label {
+        color: #555;
+        font-weight: 500;
+    }
+
+    .image-upload-container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .image-upload-box {
+        position: relative;
+        width: 100%;
+        padding-bottom: 100%;
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .image-upload-box.marked-delete {
+        opacity: 0.5;
+    }
+
+    .image-upload-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+    }
+
+    .upload-icon {
+        font-size: 2rem;
+        color: #adb5bd;
+    }
+
+    .preview-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .delete-image-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: rgba(220, 53, 69, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 2;
+        transition: background-color 0.2s;
+    }
+
+    .delete-image-btn:hover {
+        background: rgba(220, 53, 69, 1);
+    }
+
+    .delete-image-btn.undo i {
+        transform: rotate(-45deg);
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    input[type="checkbox"][name$="-DELETE"] {
+        display: none;
+    }
+
+    .price-section {
+        background: #585C73;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 400px;
+    }
+
+    .price-section label {
+        color: white;
+        font-weight: 500;
+    }
+
+    .btn-submit {
+        background: #3f51b5;
+        border: none;
+        padding: 1rem 3rem;
+        font-weight: 500;
+    }
+
+    .btn-submit:hover {
+        background: #303f9f;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-approved {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Edit Your Ad</h1>
+        <p class="hero-subtitle">You are currently editing your vehicle ad.<br>Items marked with * are required fields.</p>
+        
+        {% if vehicle.status != 'pending' %}
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle"></i>
+            Note: After editing, your ad will need to be reviewed and approved again before it becomes visible to the public.
+        </div>
+        {% endif %}
+
+        <div class="status-badge status-{{ vehicle.status }}">
+            Status: {{ vehicle.status|title }}
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <form method="post" enctype="multipart/form-data" id="editAdForm">
+        {% csrf_token %}
+        {{ form.status }}
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+            Please correct the errors below.
+            {{ form.errors }}
+        </div>
+        {% endif %}
+        
+        {% if image_formset.errors %}
+        <div class="alert alert-danger">
+            Please correct the image errors below.
+            {{ image_formset.errors }}
+        </div>
+        {% endif %}
+        
+        <!-- Vehicle Details Section -->
+        <h3 class="section-title">Vehicle Details</h3>
+        
+        <!-- Type, Make, Model, Condition Box -->
+        <div class="vehicle-type-box">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <label for="{{ form.vehicle_type.id_for_label }}" class="required-field">Type</label>
+                    {{ form.vehicle_type }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.make.id_for_label }}" class="required-field">Make</label>
+                    {{ form.make }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.model.id_for_label }}" class="required-field">Model</label>
+                    {{ form.model }}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.condition.id_for_label }}" class="required-field">Condition</label>
+                    {{ form.condition }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Vehicle Details -->
+        <div class="details-section">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="label-wrapper">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <label for="{{ form.mileage.id_for_label }}">Mileage</label>
+                        </div>
+                        {{ form.mileage }}
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="label-wrapper">
+                            <i class="fas fa-gas-pump"></i>
+                            <label for="{{ form.fuel_type.id_for_label }}" class="required-field">Fuel Type</label>
+                        </div>
+                        {{ form.fuel_type }}
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="label-wrapper">
+                            <i class="fas fa-cog"></i>
+                            <label for="{{ form.engine.id_for_label }}">Engine(cc)</label>
+                        </div>
+                        {{ form.engine }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="label-wrapper">
+                            <i class="fas fa-calendar"></i>
+                            <label for="{{ form.year.id_for_label }}" class="required-field">Year</label>
+                        </div>
+                        {{ form.year }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="label-wrapper">
+                            <i class="fas fa-cogs"></i>
+                            <label for="{{ form.transmission.id_for_label }}" class="required-field">Transmission</label>
+                        </div>
+                        {{ form.transmission }}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="label-wrapper">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <label for="{{ form.location.id_for_label }}" class="required-field">Location</label>
+                        </div>
+                        {{ form.location }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description Section -->
+        <div class="description-section mb-4">
+            <h3 class="section-title">Description</h3>
+            <div class="row">
+                <div class="col-12">
+                    {{ form.description }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features-section mb-4">
+            <h3 class="section-title">Features</h3>
+            <div class="row g-3">
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.air_condition }}
+                        <label class="form-check-label" for="{{ form.air_condition.id_for_label }}">
+                            Air Condition
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.power_windows }}
+                        <label class="form-check-label" for="{{ form.power_windows.id_for_label }}">
+                            Power Windows
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.power_mirrors }}
+                        <label class="form-check-label" for="{{ form.power_mirrors.id_for_label }}">
+                            Power Mirrors
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.power_seats }}
+                        <label class="form-check-label" for="{{ form.power_seats.id_for_label }}">
+                            Power Seats
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.power_steering }}
+                        <label class="form-check-label" for="{{ form.power_steering.id_for_label }}">
+                            Power Steering
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.sun_roof }}
+                        <label class="form-check-label" for="{{ form.sun_roof.id_for_label }}">
+                            Sun Roof
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.abs }}
+                        <label class="form-check-label" for="{{ form.abs.id_for_label }}">
+                            ABS
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.led }}
+                        <label class="form-check-label" for="{{ form.led.id_for_label }}">
+                            LED Lights
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.reverse_camera }}
+                        <label class="form-check-label" for="{{ form.reverse_camera.id_for_label }}">
+                            Reverse Camera
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 feature-checkbox">
+                    <div class="form-check">
+                        {{ form.air_bags }}
+                        <label class="form-check-label" for="{{ form.air_bags.id_for_label }}">
+                            Air Bags
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information -->
+        <div class="contact-section mb-4">
+            <h3 class="section-title">Contact Information</h3>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="{{ form.phone_number.id_for_label }}" class="required-field">Phone Number</label>
+                    {{ form.phone_number }}
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.whatsapp_number.id_for_label }}">WhatsApp Number</label>
+                        {{ form.whatsapp_number }}
+                        {% if form.whatsapp_number.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.whatsapp_number.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Section -->
+        <div class="price-section mb-4">
+            <div class="row">
+                <div class="col-12">
+                    <label for="{{ form.price.id_for_label }}" class="required-field">Price (Rs)</label>
+                    {{ form.price }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Photos Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h3 class="section-title">Upload Photos</h3>
+                <p class="text-muted mb-4">Upload up to 5 photos</p>
+                
+                {{ image_formset.management_form }}
+                <div class="image-upload-container">
+                    {% for image_form in image_formset %}
+                        <div class="image-upload-box">
+                            {{ image_form.id }}
+                            <label class="image-upload-label" for="{{ image_form.image.id_for_label }}">
+                                <div class="upload-icon" {% if image_form.instance.image %}style="display: none;"{% endif %}>
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                {% if image_form.instance.image %}
+                                    <img src="{{ image_form.instance.image.url }}" class="preview-image" style="display: block;">
+                                {% else %}
+                                    <img class="preview-image" style="display: none;">
+                                {% endif %}
+                            </label>
+                            {{ image_form.image }}
+                            {{ image_form.DELETE }}
+                            <button type="button" class="delete-image-btn" {% if not image_form.instance.image %}style="display: none;"{% endif %}>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-5">
+            <a href="{% url 'users:my_ads' %}" class="btn btn-outline-secondary btn-lg me-2">Cancel</a>
+            <button type="submit" class="btn btn-primary btn-lg btn-submit" onclick="return validateForm()">Update Ad</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle image uploads
+    document.querySelectorAll('.image-upload-box').forEach(box => {
+        const input = box.querySelector('input[type="file"]');
+        const preview = box.querySelector('.preview-image');
+        const deleteBtn = box.querySelector('.delete-image-btn');
+        const deleteCheckbox = box.querySelector('input[type="checkbox"][name$="-DELETE"]');
+
+        if (input) {
+            input.addEventListener('change', function(e) {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        box.querySelector('.upload-icon').style.display = 'none';
+                        deleteBtn.style.display = 'flex';
+                        // Uncheck delete checkbox if it was checked
+                        if (deleteCheckbox) {
+                            deleteCheckbox.checked = false;
+                            box.classList.remove('marked-delete');
+                            deleteBtn.classList.remove('undo');
+                            deleteBtn.querySelector('i').className = 'fas fa-trash';
+                        }
+                    };
+                    
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+        }
+
+        if (deleteBtn && deleteCheckbox) {
+            deleteBtn.addEventListener('click', function() {
+                if (!deleteCheckbox.checked) {
+                    // Mark for deletion
+                    deleteCheckbox.checked = true;
+                    box.classList.add('marked-delete');
+                    this.classList.add('undo');
+                    this.querySelector('i').className = 'fas fa-undo';
+                } else {
+                    // Undo deletion
+                    deleteCheckbox.checked = false;
+                    box.classList.remove('marked-delete');
+                    this.classList.remove('undo');
+                    this.querySelector('i').className = 'fas fa-trash';
+                }
+            });
+        } else if (deleteBtn) {
+            // For new image slots
+            deleteBtn.addEventListener('click', function() {
+                input.value = '';
+                preview.src = '';
+                preview.style.display = 'none';
+                box.querySelector('.upload-icon').style.display = 'flex';
+                this.style.display = 'none';
+            });
+        }
+    });
+
+    // Form validation
+    function validateForm() {
+        const requiredFields = [
+            'vehicle_type',
+            'make',
+            'model',
+            'condition',
+            'year',
+            'location',
+            'price',
+            'phone_number',
+            'fuel_type',
+            'transmission'
+        ];
+        
+        let isValid = true;
+        requiredFields.forEach(field => {
+            const input = document.querySelector(`[name="${field}"]`);
+            if (input && !input.value.trim()) {
+                isValid = false;
+                input.classList.add('is-invalid');
+            } else if (input) {
+                input.classList.remove('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            alert('Please fill in all required fields marked with *');
+            return false;
+        }
+        
+        return true;
+    }
+</script>
+{% endblock %} 

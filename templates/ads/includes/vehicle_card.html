@@ -1,0 +1,47 @@
+{% load static ads_extras %}
+<a href="{% url 'ads:detail' vehicle.id %}" class="vehicle-card text-decoration-none">
+    <div class="image-container">
+        {% if vehicle.images.first %}
+        <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
+        {% else %}
+        <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
+        {% endif %}
+        <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
+        <button class="favorite-btn {% if vehicle in user.favorites.all %}active{% endif %}"
+                data-vehicle-id="{{ vehicle.id }}" onclick="toggleFavorite(this)">
+            <i class="fas fa-heart"></i>
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="title-price">
+            <div class="title-container">
+                <div class="marquee-wrapper">
+                    <h3 class="marquee-content vehicle-title" data-text="{{ vehicle.make }} {{ vehicle.model }}">
+                        <span>{{ vehicle.make }} {{ vehicle.model }}</span>
+                        <span>{{ vehicle.make }} {{ vehicle.model }}</span>
+                    </h3>
+                </div>
+            </div>
+            <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="vehicle-details">
+            {% if vehicle.year %}
+            <div class="detail-item">
+                <i class="fas fa-calendar-alt"></i>
+                <span>{{ vehicle.year }}</span>
+            </div>
+            {% endif %}
+            {% if vehicle.mileage %}
+            <div class="detail-item">
+                <i class="fas fa-road"></i>
+                <span>{{ vehicle.mileage }} km</span>
+            </div>
+            {% endif %}
+            <div class="detail-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>{{ vehicle.location }}</span>
+            </div>
+        </div>
+    </div>
+</a> 

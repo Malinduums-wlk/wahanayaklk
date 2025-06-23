@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-table {
+        width: 100%;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .user-table th {
+        background: #f8f9fa;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .user-table td {
+        padding: 1rem;
+        border-top: 1px solid #eee;
+    }
+
+    .meta-text {
+        color: #666;
+        font-size: 0.875rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-primary {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>User Management</h1>
+        <a href="{% url 'users:admin_dashboard' %}" class="btn btn-outline-primary">Back to Dashboard</a>
+    </div>
+
+    <div class="user-table">
+        <table class="w-100">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Contact Info</th>
+                    <th>Joined</th>
+                    <th>Total Ads</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        {{ user.username }}
+                        {% if user.first_name or user.last_name %}
+                        <div class="meta-text">{{ user.first_name }} {{ user.last_name }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ user.email }}
+                        {% if user.phone_number %}
+                        <div class="meta-text">{{ user.phone_number }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ user.date_joined|date:"M d, Y" }}
+                        <div class="meta-text">{{ user.date_joined|timesince }} ago</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-primary">{{ user.ad_count }} ads</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 
