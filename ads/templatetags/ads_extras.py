@@ -21,4 +21,17 @@ def to_wa(value):
         return digits
     if digits.startswith('0094'):
         return digits[2:]
-    return digits 
+    return digits
+
+@register.filter
+def is_favorite(vehicle, user):
+    """Return True if the given vehicle is in the user's favorites."""
+    if user and user.is_authenticated:
+        # Avoid extra queries by comparing IDs
+        return user.favorites.filter(vehicle_id=vehicle.id).exists()
+    return False
+
+@register.filter
+def favorite_count(vehicle):
+    """Return the number of users who have favorited this vehicle."""
+    return vehicle.favorited_by.count() 

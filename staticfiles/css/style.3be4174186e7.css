@@ -3,45 +3,60 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    width: 100%;
+    box-sizing: border-box;
+}
+
+html {
+    box-sizing: border-box;
+    overflow-x: hidden; /* Prevent horizontal scroll at root */
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
 }
 
 main {
     flex: 1;
+    width: 100%;
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* Container */
 .container {
-    max-width: 60vw !important;
-    width: 60vw;
+    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.75rem; /* Match Bootstrap gutter to avoid overflow */
 }
 
 .custom-container {
-    max-width: 60vw;
-    width: 60vw;
+    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.75rem;
 }
 
 .form-container {
-    max-width: 60vw;
-    width: 60vw;
+    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.75rem;
 }
 
 /* Navigation */
 .navbar {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
 }
 
 /* NEW: Navbar container width */
 .navbar .container {
-    max-width: 60vw !important;
-    width: 60vw;
+    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 0.75rem;
 }
 
 /* NEW: Default shop images */
@@ -153,12 +168,35 @@ footer {
 }
 
 /* Responsive Design */
+@media (min-width: 1025px) {
+    .container,
+    .custom-container,
+    .form-container,
+    .navbar .container {
+        width: 60vw;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container,
+    .custom-container,
+    .form-container,
+    .navbar .container {
+        width: calc(100% - 40px);
+        margin-left: 20px;
+        margin-right: 20px;
+        padding: 0;
+    }
+}
+
 @media (max-width: 768px) {
     .container,
     .custom-container,
-    .form-container {
-        max-width: 95vw;
-        width: 95vw;
+    .form-container,
+    .navbar .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 0.75rem; /* Keep consistent padding */
     }
 
     .vehicle-card img {
@@ -170,4 +208,6 @@ footer {
         height: 100px;
     }
 }
+
+/* No fixed freeze; container will keep min-width 950px until tablet breakpoint */
 

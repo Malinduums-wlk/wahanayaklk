@@ -1,14 +1,16 @@
 /* Vehicle Grid Layout */
 .vehicle-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
     margin: 2rem 0;
+    width: 100%;
 }
 
 /* List Layout */
 .vehicle-grid.list-layout {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    width: 100%;
 }
 
 .vehicle-grid.list-layout .vehicle-card {
@@ -314,15 +316,157 @@
 
 /* Container styles */
 .container {
-    max-width: 60vw;
-    width: 60vw;
+    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 2rem 1rem;
 }
 
-@media (max-width: 48em) {
+/* Restrict width on larger screens only */
+@media (min-width: 1025px) {
     .container {
-        max-width: 100%;
+        width: 100%;
+        max-width: 1200px;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    /* Display exactly 3 cards per row in standard grid layout on desktop */
+    .vehicle-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    /* Display exactly 2 cards per row when the user switches to list/tile view on desktop */
+    .vehicle-grid.list-layout {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        max-width: calc(100% - 40px);
+        width: calc(100% - 40px);
+        margin-left: 20px;
+        margin-right: 20px;
+        padding: 0;
+    }
+
+    /* Show 2 cards per row in both grid and list layouts */
+    .vehicle-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    .vehicle-grid.list-layout {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Adjust list layout card styles for tablet */
+    .vehicle-grid.list-layout .vehicle-card {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .image-container {
+        flex: none;
+        width: 100%;
+        padding-top: 66.67%;
+        height: auto;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .card-body {
+        flex: none;
+        width: 100%;
         padding: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .vehicle-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .image-container {
+        flex: none;
+        width: 100%;
+        padding-top: 66.67%;
+        height: auto;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .card-body {
+        flex: none;
+        width: 100%;
+        padding: 1rem;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .title-price {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .title-container {
+        flex: 1;
+        max-width: 65%;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+        font-size: 1rem !important;
+        text-align: right;
+        padding-left: 0.5rem;
+        width: auto;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .detail-item {
+        flex: 1 1 auto;
+        min-width: calc(33.33% - 0.5rem);
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .vehicle-card .title-price {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .vehicle-card .title-container,
+    .vehicle-grid.list-layout .vehicle-card .title-container {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .vehicle-card .vehicle-price,
+    .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+        font-size: 1rem !important;
+        text-align: left;
+        padding-left: 0;
+        width: 100%;
+    }
+
+    .vehicle-card .vehicle-details,
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .vehicle-card .detail-item,
+    .vehicle-grid.list-layout .vehicle-card .detail-item {
+        flex: 1 1 auto;
+        min-width: calc(50% - 0.375rem);
+        justify-content: flex-start;
     }
 } 

@@ -28,21 +28,21 @@ main {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-    padding: 0 0.75rem; /* Match Bootstrap gutter to avoid overflow */
+    padding: 0 1.5rem;
 }
 
 .custom-container {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-    padding: 0 0.75rem;
+    padding: 0 1.5rem;
 }
 
 .form-container {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-    padding: 0 0.75rem;
+    padding: 0 1.5rem;
 }
 
 /* Navigation */
@@ -51,12 +51,12 @@ main {
     width: 100%;
 }
 
-/* NEW: Navbar container width */
+/* Navbar container width */
 .navbar .container {
     max-width: 1200px;
     width: 100%;
     margin: 0 auto;
-    padding: 0 0.75rem;
+    padding: 0 1.5rem;
 }
 
 /* NEW: Default shop images */
@@ -173,7 +173,10 @@ footer {
     .custom-container,
     .form-container,
     .navbar .container {
-        width: 60vw;
+        max-width: 1200px;
+        width: min(85%, 1200px);
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 
@@ -182,9 +185,9 @@ footer {
     .custom-container,
     .form-container,
     .navbar .container {
-        width: calc(100% - 40px);
-        margin-left: 20px;
-        margin-right: 20px;
+        width: calc(100% - 3rem);
+        margin-left: auto;
+        margin-right: auto;
         padding: 0;
     }
 }
@@ -196,7 +199,7 @@ footer {
     .navbar .container {
         width: 100%;
         max-width: 100%;
-        padding: 0 0.75rem; /* Keep consistent padding */
+        padding: 0 1rem;
     }
 
     .vehicle-card img {

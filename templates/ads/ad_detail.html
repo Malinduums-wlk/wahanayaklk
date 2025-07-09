@@ -7,35 +7,129 @@
 <style>
     .vehicle-detail {
         padding: 0;
-        width: 60vw;
+        width: 100%;
+        max-width: 1200px;
         margin: 0 auto;
-        min-width: calc(1024px + 40px);
+        /* For larger screens, restrict width */
+    }
+
+    @media (min-width: 1025px) {
+        /* Keep full width (up to 1200px) and add side padding instead of shrinking content */
+        .vehicle-detail {
+            width: 100%;
+            max-width: 1200px;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
     }
 
     /* Modify container styles to keep navbar width but allow content width */
     .vehicle-detail .container {
         width: 100% !important;
         max-width: 100% !important;
-        padding: 0;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
         margin: 0 auto;
     }
 
-    /* Keep navbar container at 60vw */
-    .navbar .container {
-        width: 60vw !important;
-        max-width: 60vw !important;
-        padding: 0 1rem;
-        margin: 0 auto;
-    }
+    /* Let global CSS handle navbar container width responsively */
 
     .header {
         padding: 2rem 0;
     }
 
+    /* Apply gradient background to entire top section above gallery */
+    .hero-section-bg {
+        background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+        width: 100%;
+        max-width: none; /* allow full width */
+        margin: 0; /* remove auto centering so it spans full viewport */
+        border-radius: 0 0 0.75rem 0.75rem; /* keep bottom corners rounded */
+        padding: 0;
+    }
+
+    /* Inner container retains width limits and centers content */
+    .hero-section-bg .container {
+        max-width: 1200px !important;
+        width: 100% !important;
+        margin: 0 auto;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    @media (min-width: 1025px) {
+        .hero-section-bg .container {
+            width: 60vw !important; /* align with global rule for container */
+        }
+    }
+
+    .title-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
     .vehicle-title {
         font-size: 2.5rem;
         font-weight: 600;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0;
+    }
+
+    .favorite-btn {
+        background: #ffffff; /* white background box */
+        border-radius: 0.75rem; /* 12px rounded corners */
+        border: none;
+        font-size: 1.8rem; /* Increased heart icon size */
+        color: #ccc;
+        cursor: pointer;
+        padding: 0.75rem;
+        transition: none; /* Remove transition from button */
+        margin-left: 1rem;
+        position: relative;
+        width: 3.5rem; /* Increased button width */
+        height: 3.5rem; /* Increased button height */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .favorite-btn i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        transition: transform 0.2s ease; /* Add transition to icon */
+    }
+
+    .favorite-btn:hover i {
+        transform: translate(-50%, -50%) scale(1.1); /* Scale only the icon */
+    }
+
+    .favorite-btn .count {
+        position: absolute;
+        font-size: 0.7rem; /* Decreased from 0.85rem */
+        font-weight: 600;
+        color: #666;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%); /* Center exactly */
+        line-height: 1;
+        margin-top: 1px; /* Slight adjustment to account for heart icon's visual center */
+        pointer-events: none;
+        transition: transform 0.2s ease; /* Add transition to count */
+    }
+
+    .favorite-btn:hover .count {
+        transform: translate(-50%, -50%) scale(1.1); /* Scale count with icon */
+    }
+
+    .favorite-btn.active .count {
+        color: #fff;
+    }
+
+    .favorite-btn.active {
+        color: #ff4081;
     }
 
     .post-date {
@@ -105,16 +199,34 @@
     .specs-bar {
         display: grid;
         grid-template-columns: repeat(6, 1fr);
-        gap: 1rem;
+        gap: 0.5rem;
         margin: 2rem 0;
+        width: 70%;
+        margin-left: auto;
+        margin-right: auto;
+        overflow: visible;
+        position: static;
+        padding: 0;
+    }
+
+    .specs-bar-track {
+        display: contents;
+        animation: none;
+        width: auto;
+    }
+
+    /* Hide duplicate cards on desktop and tablet */
+    .spec-item:nth-child(n+7) {
+        display: none;
     }
 
     .spec-item {
-        background: #3f51b5;
+        background: #585C73;
         color: white;
         padding: 1.5rem;
-        border-radius: 12px;
+        border-radius: 10px;
         text-align: center;
+        min-width: 0; /* Allow grid to control width */
     }
 
     .spec-item i {
@@ -139,6 +251,7 @@
         border-radius: 1rem;
         padding: 2rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        width: 100%;
     }
 
     .description-section p {
@@ -306,6 +419,41 @@
             width: 33.333%;
             height: 300px;
         }
+
+        .specs-bar {
+            width: 95%;
+        }
+
+        /* Hide shop cover for premium users */
+        .premium-seller-info .shop-cover {
+            display: none;
+        }
+
+        /* Move price section above stats */
+        .content-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-section {
+            order: -1;
+            margin-bottom: 2rem;
+            position: static;
+        }
+
+        .specs-bar-desktop {
+            display: none !important;
+        }
+        .specs-bar-mobile {
+            display: grid !important;
+        }
+
+        /* Remove side white gaps on tablet and mobile */
+        .hero-section-bg {
+            border-radius: 0; /* Remove rounded corners to avoid side gaps */
+            width: 100%!important; /* Full width */
+            margin: 0!important;   /* Remove side margins */
+        }
     }
 
     @media (min-width: 769px) and (max-width: 1024px) {
@@ -319,13 +467,16 @@
 
         .specs-bar {
             grid-template-columns: repeat(6, 1fr);
-            grid-template-rows: 1fr;
-            gap: 15px;
-            margin: 2rem 0;
+            gap: 0.5rem;
+            margin: 2rem auto;
+            width: 95%;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .content-section {
-            grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: column;
             gap: 2rem;
             margin: 2rem 0;
         }
@@ -375,18 +526,52 @@
             font-size: 1.75rem;
         }
 
+        /* Hide shop cover for premium users */
+        .premium-seller-info .shop-cover {
+            display: none;
+        }
+
+        /* Mobile 3x2 grid layout */
         .specs-bar {
-            grid-template-columns: repeat(3, 1fr);
-            margin: 1rem 0;
-            gap: 10px;
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            grid-template-rows: repeat(2, 1fr) !important;
+            column-gap: 0.3rem !important;
+            row-gap: 0.3rem !important;
+            margin: 1rem 0 !important;
+            padding: 0 10px !important;
+            width: 100% !important;
+            position: static !important;
+            overflow: visible !important;
+        }
+
+        .specs-bar-track {
+            display: contents !important;
+            animation: none !important;
+            width: auto !important;
         }
 
         .spec-item {
-            padding: 1rem;
+            padding: 0.75rem;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            text-align: left !important;
         }
 
         .spec-item i {
-            font-size: 1.25rem;
+            font-size: 1.2rem !important;
+            margin-bottom: 0 !important;
+            flex-shrink: 0;
+        }
+
+        .spec-value {
+            font-size: 0.85rem !important;
+        }
+
+        /* Hide duplicate cards on mobile */
+        .spec-item:nth-child(n+7) {
+            display: none !important;
         }
 
         .content-section {
@@ -405,7 +590,9 @@
         .price-section {
             width: 100%;
             margin: 0;
-            order: 1;
+            order: -1;
+            position: static;
+            margin-bottom: 1rem;
         }
 
         .image-gallery img {
@@ -454,6 +641,30 @@
 
         .feature-item span {
             font-size: 0.875rem;
+        }
+
+        .specs-bar-mobile {
+            display: grid !important;
+        }
+        .specs-bar-desktop {
+            display: none !important;
+        }
+
+        /* Scrolling city text on mobile */
+        .spec-item i.fa-map-marker-alt + .spec-value {
+            overflow: hidden;
+            position: relative;
+        }
+
+        .spec-item i.fa-map-marker-alt + .spec-value .scrolling-text {
+            display: inline-block;
+            white-space: nowrap;
+            animation: city-scroll 6s linear infinite;
+        }
+
+        @keyframes city-scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
         }
     }
 
@@ -698,16 +909,52 @@
         font-size: 1.1rem;
         color: #333;
     }
+
+    /* Add default hide for mobile duplicate specs bar */
+    .specs-bar-mobile {
+        display: none;
+    }
+
+    /* Remove border radius on tablet and mobile to eliminate side gaps */
+    @media (max-width: 1024px) {
+        .hero-section-bg {
+            border-radius: 0;
+        }
+    }
+
+    /* Maintain text alignment within hero section on small screens */
+    @media (max-width: 768px) {
+        .hero-section-bg .container {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .hero-section-bg .container {
+            padding-left: 20px !important;
+            padding-right: 20px !important;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="vehicle-detail">
+<div class="vehicle-detail hero-section-bg">
+    <div class="container">
     <div class="header">
+            <div class="title-container">
         <h1 class="vehicle-title">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h1>
+                <button class="favorite-btn {% if vehicle|is_favorite:user %}active{% endif %}"
+                        data-vehicle-id="{{ vehicle.id }}" onclick="toggleFavorite(this)">
+                    <i class="fas fa-heart"></i>
+                    <span class="count">{{ vehicle|favorite_count }}</span>
+                </button>
+            </div>
         <div class="post-date">
-            <i class="fas fa-calendar"></i>
-            {{ vehicle.created_at|date:"F d, Y" }}
+                <i class="fas fa-calendar-alt"></i>
+                <span>Posted on {{ vehicle.created_at|date:'F j, Y' }}</span>
+            </div>
         </div>
     </div>
 </div>
@@ -760,35 +1007,92 @@
         </div>
     </div>
     {% endif %}
-    <div class="specs-bar">
-        <div class="spec-item">
-            <i class="fas fa-calendar"></i>
-            <div class="spec-value">{{ vehicle.year }}</div>
-        </div>
-        <div class="spec-item">
-            <i class="fas fa-road"></i>
-            <div class="spec-value">{{ vehicle.mileage|default:"0" }}km</div>
-        </div>
-        <div class="spec-item">
-            <i class="fas fa-cog"></i>
-            <div class="spec-value">{{ vehicle.transmission }}</div>
-        </div>
-        <div class="spec-item">
-            <i class="fas fa-gas-pump"></i>
-            <div class="spec-value">{{ vehicle.fuel_type }}</div>
-        </div>
-        <div class="spec-item">
-            <i class="fas fa-tachometer-alt"></i>
-            <div class="spec-value">{{ vehicle.engine }} cc</div>
-        </div>
-        <div class="spec-item">
-            <i class="fas fa-map-marker-alt"></i>
-            <div class="spec-value">{{ vehicle.location }}</div>
+    <div class="specs-bar specs-bar-desktop">
+        <div class="specs-bar-track">
+            <div class="spec-item">
+                <i class="fas fa-calendar"></i>
+                <div class="spec-value">{{ vehicle.year }}</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-road"></i>
+                <div class="spec-value">{{ vehicle.mileage|default:"0" }}km</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-cog"></i>
+                <div class="spec-value">{{ vehicle.transmission }}</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-gas-pump"></i>
+                <div class="spec-value">{{ vehicle.fuel_type }}</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <div class="spec-value">{{ vehicle.engine }} cc</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="spec-value"><span class="scrolling-text">{{ vehicle.location }}</span></div>
+            </div>
+            <!-- Duplicate cards for seamless loop -->
+            <div class="spec-item">
+                <i class="fas fa-calendar"></i>
+                <div class="spec-value">{{ vehicle.year }}</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-road"></i>
+                <div class="spec-value">{{ vehicle.mileage|default:"0" }}km</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-cog"></i>
+                <div class="spec-value">{{ vehicle.transmission }}</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-gas-pump"></i>
+                <div class="spec-value">{{ vehicle.fuel_type }}</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-tachometer-alt"></i>
+                <div class="spec-value">{{ vehicle.engine }} cc</div>
+            </div>
+            <div class="spec-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="spec-value"><span class="scrolling-text">{{ vehicle.location }}</span></div>
+            </div>
         </div>
     </div>
 
     <div class="content-section">
         <div>
+            <!-- Mobile / Tablet Specs Bar placed after price using order handling -->
+            <div class="specs-bar specs-bar-mobile">
+                <div class="specs-bar-track">
+                    <div class="spec-item">
+                        <i class="fas fa-calendar"></i>
+                        <div class="spec-value">{{ vehicle.year }}</div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-road"></i>
+                        <div class="spec-value">{{ vehicle.mileage|default:"0" }}km</div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-cog"></i>
+                        <div class="spec-value">{{ vehicle.transmission }}</div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-gas-pump"></i>
+                        <div class="spec-value">{{ vehicle.fuel_type }}</div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <div class="spec-value">{{ vehicle.engine }} cc</div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div class="spec-value"><span class="scrolling-text">{{ vehicle.location }}</span></div>
+                    </div>
+                </div>
+            </div>
+
             {% if vehicle.description %}
             <div class="description-section">
                 <p style="text-align: left;">{{ vehicle.description }}</p>
@@ -1172,5 +1476,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function toggleFavorite(button) {
+    const vehicleId = button.dataset.vehicleId;
+    const countSpan = button.querySelector('.count');
+    const currentCount = parseInt(countSpan.textContent);
+    
+    fetch(`/ads/toggle-favorite/${vehicleId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            button.classList.toggle('active');
+            // Update the count based on whether we added or removed the favorite
+            countSpan.textContent = data.is_favorite ? currentCount + 1 : currentCount - 1;
+        }
+    });
+}
+
 </script>
 {% endblock %} 

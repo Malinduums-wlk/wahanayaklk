@@ -6,32 +6,21 @@
         {% else %}
         <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
         {% endif %}
-        <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
-        <button class="favorite-btn {% if vehicle in user.favorites.all %}active{% endif %}"
-                data-vehicle-id="{{ vehicle.id }}" onclick="toggleFavorite(this)">
-            <i class="fas fa-heart"></i>
-        </button>
+        <div class="listing-date">{{ vehicle.created_at|date:'M d, Y' }}</div>
     </div>
     <div class="card-body">
         <div class="title-price">
             <div class="title-container">
-                <div class="marquee-wrapper">
-                    <h3 class="marquee-content vehicle-title" data-text="{{ vehicle.make }} {{ vehicle.model }}">
-                        <span>{{ vehicle.make }} {{ vehicle.model }}</span>
-                        <span>{{ vehicle.make }} {{ vehicle.model }}</span>
-                    </h3>
-                </div>
+                <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
             </div>
             <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
         </div>
         <div class="card-divider"></div>
         <div class="vehicle-details">
-            {% if vehicle.year %}
             <div class="detail-item">
                 <i class="fas fa-calendar-alt"></i>
-                <span>{{ vehicle.year }}</span>
+                <span>{{ vehicle.registered|default:vehicle.year }}</span>
             </div>
-            {% endif %}
             {% if vehicle.mileage %}
             <div class="detail-item">
                 <i class="fas fa-road"></i>
@@ -44,4 +33,10 @@
             </div>
         </div>
     </div>
+    {% if user.is_authenticated %}
+    <div class="favorite-btn {% if vehicle|is_favorite:user %}active{% endif %}"
+         data-vehicle-id="{{ vehicle.id }}" onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(this)">
+        <i class="fas fa-heart"></i>
+    </div>
+    {% endif %}
 </a> 

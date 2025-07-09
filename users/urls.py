@@ -9,6 +9,7 @@ urlpatterns = [
     path('shop/', views.shop_setup, name='shop_setup'),
     path('shop/<int:user_id>/', views.shop_profile, name='shop_profile'),
     path('my-ads/', views.my_ads, name='my_ads'),
+    path('my-favorites/', views.my_favorites, name='my_favorites'),
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin/users/', views.user_list, name='admin_user_list'),
     path('admin/badge-users/', views.badge_users, name='admin_badge_users'),

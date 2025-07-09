@@ -468,13 +468,28 @@
 
     {% if section == 'registered' %}
         <h2 class="section-title">Registered Users <span class="badge bg-primary">{{ total_users }}</span></h2>
+        <div class="mb-4">
+            <form method="get" action="" style="max-width: 400px;">
+                <input type="hidden" name="section" value="registered">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    {% if search_query %}
+                    <a href="?section=registered" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
         {% if recent_users %}
         <div class="data-table">
             <table class="w-100">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
                         <th>Name</th>
                         <th>Contact</th>
                         <th>Company</th>
@@ -489,15 +504,17 @@
                     <tr>
                         <td><span style="font-family:monospace;">{% if entry.profile %}{{ entry.profile.unique_id }}{% endif %}</span></td>
                         <td>
-                            {% if entry.profile and entry.profile.profile_picture %}
-                            <img src="{{ entry.profile.profile_picture.url }}" alt="{{ entry.user.username }}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:8px;">
-                            {% else %}
-                            <span style="display:inline-block;width:32px;height:32px;background:#eee;border-radius:50%;vertical-align:middle;margin-right:8px;"></span>
-                            {% endif %}
-                            {{ entry.user.username }}
-                        </td>
-                        <td>
-                            {{ entry.user.first_name }} {{ entry.user.last_name }}
+                            <div class="d-flex align-items-center">
+                                {% if entry.profile and entry.profile.profile_picture %}
+                                <img src="{{ entry.profile.profile_picture.url }}" alt="{{ entry.user.username }}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;margin-right:8px;">
+                                {% else %}
+                                <span style="display:inline-block;width:32px;height:32px;background:#eee;border-radius:50%;margin-right:8px;"></span>
+                                {% endif %}
+                                <div>
+                                    <div>{{ entry.user.first_name }} {{ entry.user.last_name }}</div>
+                                    <small class="text-muted">@{{ entry.user.username }}</small>
+                                </div>
+                            </div>
                         </td>
                         <td>
                             <div class="contact-info">
@@ -543,13 +560,29 @@
         {% endif %}
     {% elif section == 'pending' %}
         <h2 class="section-title">Pending Ads <span class="badge bg-success">{{ pending_ads }}</span></h2>
+        <div class="mb-4">
+            <form method="get" action="" style="max-width: 400px;">
+                <input type="hidden" name="section" value="pending">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    {% if search_query %}
+                    <a href="?section=pending" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
         {% if pending_vehicles %}
         <div class="data-table">
             <table class="w-100">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>AD</th>
+                        <th>Ad ID</th>
+                        <th>Vehicle</th>
                         <th>Type</th>
                         <th>Posted By</th>
                         <th>Date</th>
@@ -559,9 +592,7 @@
                 <tbody>
                     {% for vehicle in pending_vehicles %}
                     <tr>
-                        <td>
-                            <span style="font-family:monospace;">{{ vehicle.ad_id }}</span>
-                        </td>
+                        <td><span style="font-family:monospace;">#{{ vehicle.ad_id }}</span></td>
                         <td>
                             <div class="d-flex align-items-center">
                                 {% if vehicle.images.first %}
@@ -572,8 +603,8 @@
                                 </div>
                                 {% endif %}
                                 <div>
-                                    <a href="{% url 'ads:detail' vehicle.id %}" class="vehicle-title text-decoration-none">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</a>
-                                    <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:0 }}</div>
+                                    <div class="fw-medium">{{ vehicle.make }} {{ vehicle.model }} {{ vehicle.year }}</div>
+                                    <div class="text-muted">Rs. {{ vehicle.price|floatformat:0 }}</div>
                                 </div>
                             </div>
                         </td>
@@ -588,7 +619,13 @@
                                 <div style="width:32px;height:32px;background:#eee;border-radius:50%;margin-right:8px;"></div>
                                 {% endif %}
                                 <div>
-                                    <div class="fw-medium">{{ vehicle.user.username }}</div>
+                                    <div class="fw-medium">
+                                        {% if vehicle.user.first_name or vehicle.user.last_name %}
+                                            {{ vehicle.user.first_name }} {{ vehicle.user.last_name }}
+                                        {% else %}
+                                            {{ vehicle.user.username }}
+                                        {% endif %}
+                                    </div>
                                     <small class="text-muted">{% if vehicle.user.userprofile %}{{ vehicle.user.userprofile.unique_id }}{% endif %}</small>
                                 </div>
                             </div>
@@ -597,8 +634,11 @@
                             <div>{{ vehicle.created_at|date:"Y-m-d" }}</div>
                         </td>
                         <td>
-                            <form method="post" action="{% url 'users:manage_ad' vehicle.id %}" class="d-flex gap-2">
+                            <form method="post" action="{% url 'users:manage_ad' vehicle.id %}?section=pending" class="d-flex gap-2">
                                 {% csrf_token %}
+                                <a href="{% url 'ads:detail' vehicle.id %}" class="btn" style="background:#E3F2FD;color:#1976D2;" target="_blank">
+                                    View
+                                </a>
                                 <button type="submit" name="action" value="approve" class="btn" style="background:#CFF1E6;color:#11B981;">
                                     Approve
                                 </button>
@@ -647,9 +687,7 @@
                 <tbody>
                     {% for vehicle in all_vehicles %}
                     <tr>
-                        <td>
-                            <span style="font-family:monospace;">{{ vehicle.ad_id }}</span>
-                        </td>
+                        <td><span style="font-family:monospace;">#{{ vehicle.ad_id }}</span></td>
                         <td>
                             <span style="font-family:monospace;">{% if vehicle.user.userprofile %}{{ vehicle.user.userprofile.unique_id }}{% endif %}</span>
                         </td>
@@ -911,4 +949,50 @@
         </script>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userSearch = document.getElementById('userSearch');
+        const clearSearch = document.getElementById('clearSearch');
+        
+        if (userSearch) {
+            let timeoutId;
+            
+            userSearch.addEventListener('input', function() {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    const searchQuery = this.value.trim();
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('section', 'registered');
+                    
+                    if (searchQuery) {
+                        currentUrl.searchParams.set('search', searchQuery);
+                    } else {
+                        currentUrl.searchParams.delete('search');
+                    }
+                    
+                    window.location.href = currentUrl.toString();
+                }, 500);
+            });
+            
+            // Focus the search input if there's a search query
+            if (userSearch.value) {
+                userSearch.focus();
+                userSearch.setSelectionRange(userSearch.value.length, userSearch.value.length);
+            }
+        }
+        
+        // Clear search functionality
+        if (clearSearch) {
+            clearSearch.addEventListener('click', function() {
+                const currentUrl = new URL(window.location.href);
+                currentUrl.searchParams.delete('search');
+                window.location.href = currentUrl.toString();
+            });
+        }
+    });
+</script>
 {% endblock %} 

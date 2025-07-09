@@ -25,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a2=hjads58(t7$j2=odna24-v@1!983@1-76#lwbkt#6iam*38'
+SECRET_KEY = 'django-insecure-p2in6^!2bqm3jy4!&8we93$pc@*k8r9$4-9(#)7dh#z4)h+2na'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['wahanayak.lk', '46.183.25.196', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['wahanayak.lk', '46.183.25.196', 'localhost', '127.0.0.1', '192.168.8.118']
 
 
 # Application definition
@@ -128,9 +128,14 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# WhiteNoise configuration
+WHITENOISE_MAX_AGE = 0  # Disable caching in development
+if not DEBUG:
+    WHITENOISE_MAX_AGE = 31536000  # 1 year in production
+
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

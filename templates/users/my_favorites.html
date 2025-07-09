@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static ads_extras %}
+
+{% block title %}My Favorites - Vehicle Ads{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/vehicle-listings.css' %}">
+<style>
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        text-align: left;
+        color: #333;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin: 2rem 0;
+    }
+
+    .empty-state h3 {
+        color: #666;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state p {
+        color: #888;
+        margin-bottom: 2rem;
+    }
+
+    .empty-state .btn {
+        padding: 0.75rem 2rem;
+        font-size: 1.1rem;
+    }
+
+    /* Account Settings Sidebar */
+    .account-sidebar {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        height: fit-content;
+    }
+
+    .account-sidebar h5 {
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    .account-sidebar .btn {
+        margin-bottom: 0.5rem;
+        text-align: left;
+        justify-content: flex-start;
+        border: none;
+        background: transparent;
+        color: #666;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .account-sidebar .btn:hover {
+        background: #e9ecef;
+        color: #333;
+    }
+
+    .account-sidebar .btn.active {
+        background: #4361ee;
+        color: white;
+    }
+
+    .account-sidebar .btn.active:hover {
+        background: #3451d1;
+        color: white;
+    }
+
+    /* Prevent layout shift from scrollbar */
+    html {
+        overflow-y: scroll;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="account-sidebar">
+                <h5>Account Settings</h5>
+                <div class="d-flex flex-column">
+                    <a href="{% url 'users:profile' %}" class="btn">Profile</a>
+                    {% if user.userprofile.is_premium %}
+                    <a href="{% url 'users:shop_setup' %}" class="btn">Shop</a>
+                    {% endif %}
+                    <a href="{% url 'users:my_ads' %}" class="btn">My Ads</a>
+                    <a href="{% url 'users:my_favorites' %}" class="btn active">My Favorites</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title mb-0">My Favorites</h1>
+                <div class="layout-switcher">
+                    <button class="layout-btn active" title="Grid Layout">
+                        <i class="fas fa-th-large fa-lg"></i>
+                    </button>
+                    <button class="layout-btn" title="List Layout">
+                        <i class="fas fa-list fa-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            {% if favorite_vehicles %}
+            <div class="vehicle-grid">
+                {% for vehicle in favorite_vehicles %}
+                <a href="{% url 'ads:detail' vehicle.id %}" class="vehicle-card">
+                    <div class="image-container">
+                        {% if vehicle.images.first %}
+                        <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
+                        {% else %}
+                        <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
+                        {% endif %}
+                        <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
+                        <button class="favorite-btn active" 
+                                onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(this)" 
+                                data-vehicle-id="{{ vehicle.id }}">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="title-price">
+                            <div class="title-container">
+                                <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
+                            </div>
+                            <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
+                        </div>
+                        <div class="card-divider"></div>
+                        <div class="vehicle-details">
+                            {% if vehicle.year %}<div class="detail-item"><i class="fas fa-calendar-alt"></i><span>{{ vehicle.year }}</span></div>{% endif %}
+                            {% if vehicle.mileage %}<div class="detail-item"><i class="fas fa-road"></i><span>{{ vehicle.mileage }} km</span></div>{% endif %}
+                            <div class="detail-item"><i class="fas fa-map-marker-alt"></i><span>{{ vehicle.location }}</span></div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-heart" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+                <h3>No favorites yet</h3>
+                <p>Start adding vehicles to your favorites to see them here!</p>
+                <a href="{% url 'home' %}" class="btn btn-primary btn-lg">Browse Vehicles</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle favorite functionality
+    function toggleFavorite(button) {
+        const vehicleId = button.dataset.vehicleId;
+        
+        fetch(`/ads/toggle-favorite/${vehicleId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Remove the card from the page since it's no longer a favorite
+                const card = button.closest('.vehicle-card');
+                card.style.transition = 'opacity 0.3s ease';
+                card.style.opacity = '0';
+                setTimeout(() => {
+                    card.remove();
+                    // Check if there are no more favorites
+                    const remainingCards = document.querySelectorAll('.vehicle-card');
+                    if (remainingCards.length === 0) {
+                        // Reload the page to show empty state
+                        window.location.reload();
+                    }
+                }, 300);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // Layout switcher functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const layoutBtns = document.querySelectorAll('.layout-btn');
+        const vehicleGrid = document.querySelector('.vehicle-grid');
+
+        layoutBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active class from all buttons
+                layoutBtns.forEach(b => b.classList.remove('active'));
+                // Add active class to clicked button
+                this.classList.add('active');
+
+                // Toggle grid layout
+                if (this.title === 'List Layout') {
+                    vehicleGrid.classList.add('list-layout');
+                } else {
+                    vehicleGrid.classList.remove('list-layout');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %} 

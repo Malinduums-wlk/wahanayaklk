@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Vehicle Ads{% endblock %}</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'branding/wahanayak-favicon.png' %}">
     <!-- ADD PRECONNECT FOR GOOGLE FONTS -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,6 +27,62 @@
         html, body {
             font-family: 'Lexend Deca', sans-serif;
         }
+
+        /* Header profile picture styles */
+        .header-profile-pic {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-profile-placeholder {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Remove dropdown arrow from profile picture */
+        .nav-link.profile-dropdown::after {
+            display: none;
+        }
+
+        /* Fix header alignment */
+        .navbar .navbar-nav {
+            align-items: center;
+        }
+
+        .navbar .nav-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .nav-link.profile-dropdown {
+            padding: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Logo responsive styles */
+        .navbar-brand img {
+            height: auto;
+            width: 200px;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-brand img {
+                width: 150px; /* Smaller logo on mobile */
+            }
+        }
     </style>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/vehicle-listings.css' %}">
@@ -35,34 +93,61 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <img src="{% static 'branding/logo-main.png' %}" alt="Wahanayak" style="height: 40px; width: auto; max-height: 30px;">
+                <img src="{% static 'branding/logo-main.png' %}" alt="Wahanayak">
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            {% url 'ads:create' as create_ad_url %}
+            {% if user.is_authenticated %}
+            <a href="{{ create_ad_url }}" class="btn btn-primary d-lg-none ms-auto me-2">Post an Ad</a>
+
+            <!-- Mobile/Tablet Profile Dropdown -->
+            <div class="dropdown d-lg-none">
+                <a class="nav-link dropdown-toggle profile-dropdown" href="#" role="button" data-bs-toggle="dropdown">
+                    {% if user.userprofile.profile_picture %}
+                        <img src="{{ user.userprofile.profile_picture.url }}" alt="{{ user.username }}" class="header-profile-pic">
+                    {% else %}
+                        <div class="header-profile-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
+                    <li><a class="dropdown-item" href="{% url 'users:my_ads' %}">My Ads</a></li>
+                    {% if user.is_superuser %}
+                    <li><a class="dropdown-item" href="{% url 'users:admin_dashboard' %}">Admin Dashboard</a></li>
+                    {% endif %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form method="post" action="{% url 'logout' %}" class="dropdown-item p-0">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item">Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+            {% else %}
+            <a href="{% url 'login' %}?next={{ create_ad_url|urlencode }}" class="btn btn-primary d-lg-none ms-auto me-2">Post an Ad</a>
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            {% endif %}
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'ads:list' %}">Browse</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">About Us</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Contact</a>
-                    </li>
                 </ul>
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
-                    <li class="nav-item me-2">
+                    <li class="nav-item me-3">
                         <a href="{% url 'ads:create' %}" class="btn btn-primary">Post an Ad</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            {{ user.username }}
+                        <a class="nav-link dropdown-toggle profile-dropdown" href="#" role="button" data-bs-toggle="dropdown">
+                            {% if user.userprofile.profile_picture %}
+                                <img src="{{ user.userprofile.profile_picture.url }}" alt="{{ user.username }}" class="header-profile-pic">
+                            {% else %}
+                                <div class="header-profile-placeholder">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'users:profile' %}">Profile</a></li>
@@ -127,7 +212,10 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- CSRF Token -->
+    {% csrf_token %}
     <!-- Custom JS -->
+    <script src="{% static 'js/vehicle-card.js' %}"></script>
     <script>
         // Global flag indicating whether the current visitor is logged in.
         const userIsAuthenticated = JSON.parse('{{ user.is_authenticated|yesno:"true,false" }}');
@@ -197,7 +285,6 @@
                 .catch(error => console.error('Error:', error));
         }
     </script>
-    <script src="{% static 'js/vehicle-card.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html> 

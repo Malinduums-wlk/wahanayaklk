@@ -6,8 +6,15 @@
 {% block extra_css %}
 <style>
     .shop-profile {
-        width: 60vw;
+        width: 100%;
+        max-width: 1200px;
         margin: 0 auto;
+    }
+
+    @media (min-width: 1025px) {
+        .shop-profile {
+            width: 60vw;
+        }
     }
 
     .cover-photo {

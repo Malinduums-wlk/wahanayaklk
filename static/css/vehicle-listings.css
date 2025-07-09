@@ -1,27 +1,31 @@
 /* Vehicle Grid Layout */
 .vehicle-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
     margin: 2rem 0;
+    width: 100%;
 }
 
 /* List Layout */
 .vehicle-grid.list-layout {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+    width: 100%;
 }
 
 .vehicle-grid.list-layout .vehicle-card {
     display: flex;
     flex-direction: row;
-    min-height: 140px;
+    min-height: unset !important;
 }
 
 .vehicle-grid.list-layout .vehicle-card .image-container {
     flex: 0 0 40%;
     padding-top: 0;
     position: relative;
-    height: 140px;
+    height: auto !important;
+    min-height: unset !important;
+    max-height: 100% !important;
 }
 
 .vehicle-grid.list-layout .vehicle-card .card-body {
@@ -257,9 +261,17 @@
 .vehicle-card .detail-item {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.2rem;
     flex: 1;
     justify-content: center;
+    min-width: 0;
+}
+
+.vehicle-card .detail-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 /* First item left-aligned */
@@ -314,15 +326,277 @@
 
 /* Container styles */
 .container {
-    max-width: 60vw;
-    width: 60vw;
+    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 2rem 1rem;
 }
 
-@media (max-width: 48em) {
+/* Restrict width on larger screens only */
+@media (min-width: 1025px) {
     .container {
+        width: 100%;
+        max-width: 1200px;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    /* Display exactly 3 cards per row in standard grid layout on desktop */
+    .vehicle-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    /* Display exactly 2 cards per row when the user switches to list/tile view on desktop */
+    .vehicle-grid.list-layout {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .container {
+        max-width: calc(100% - 40px);
+        width: calc(100% - 40px);
+        margin-left: 20px;
+        margin-right: 20px;
+        padding: 0;
+    }
+
+    /* Ensure 2 cards per row in list layout on tablets */
+    .vehicle-grid.list-layout {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+
+    /* Grid view: Price before vehicle name on tablet */
+    .vehicle-grid:not(.list-layout) .vehicle-card .title-price {
+        flex-direction: row-reverse;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .vehicle-grid:not(.list-layout) .vehicle-card .vehicle-price {
+        order: 1;
+        text-align: right;
+    }
+
+    .vehicle-grid:not(.list-layout) .vehicle-card .title-container {
+        order: 2;
+        text-align: left;
+    }
+
+    /* Reduce spacing to minimize extended background - ONLY for list view */
+    .vehicle-grid.list-layout .vehicle-card .card-body {
+        padding: 0.75rem 1rem 0.5rem 1rem;
+    }
+    
+    .vehicle-grid.list-layout .vehicle-card .card-divider {
+        margin: 0.3rem 0 0.4rem;
+    }
+
+    /* Use grid for details to ensure two-row layout ONLY in tablet list view */
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.2rem 0.4rem !important;
+        width: 100% !important;
+        align-items: center !important;
+        justify-content: initial !important;
+        margin-top: 0 !important;
+    }
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details .detail-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.1rem !important;
+        font-size: 0.7rem !important;
+        white-space: nowrap !important;
+        flex: initial !important;
+        justify-content: flex-start !important;
+    }
+    /* City (last child) spans two columns - force override - ONLY for list view */
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details .detail-item:last-child {
+        grid-column: 1 / -1 !important;
+        justify-content: flex-start !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .vehicle-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    /* Grid view: Price before vehicle name on mobile */
+    .vehicle-grid:not(.list-layout) .vehicle-card .title-price {
+        flex-direction: row-reverse;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .vehicle-grid:not(.list-layout) .vehicle-card .vehicle-price {
+        order: 1;
+        text-align: right;
+    }
+
+    .vehicle-grid:not(.list-layout) .vehicle-card .title-container {
+        order: 2;
+        text-align: left;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    /* Further shrink image for mobile list view */
+    .vehicle-grid.list-layout .vehicle-card .image-container {
+        padding-top: 28% !important;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .title-price {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .title-container {
+        flex: 1;
+        max-width: 65%;
+    }
+
+    .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+        font-size: 1rem !important;
+        text-align: right;
+        padding-left: 0.5rem;
+        width: auto;
+    }
+
+    /* Tighten card body padding */
+    .vehicle-grid.list-layout .vehicle-card .card-body {
+        padding: 0.25rem 0.6rem 0.15rem 0.6rem !important;
+    }
+    
+    /* Reduce divider margin */
+    .vehicle-grid.list-layout .vehicle-card .card-divider {
+        margin: 0.15rem 0 0.25rem !important;
+    }
+
+    /* Force .vehicle-details to a single-row flex layout in mobile list view */
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        margin-top: 0 !important;
+        padding-bottom: 0.5rem !important;
+    }
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details .detail-item {
+        flex: 0 1 auto !important;
+        min-width: 0 !important;
+        font-size: 0.65rem !important;
+        white-space: nowrap !important;
+        justify-content: flex-start !important;
+        gap: 0.08rem !important;
+    }
+
+    /* Reduce text size for vehicle name, price, and posted date in list view */
+    .vehicle-grid.list-layout .vehicle-card .vehicle-title,
+    .vehicle-grid.list-layout .vehicle-card h3.vehicle-title {
+        font-size: 0.95rem !important;
+    }
+    .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+        font-size: 0.9rem !important;
+    }
+    .vehicle-grid.list-layout .vehicle-card .listing-date {
+        font-size: 0.5rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Grid view: Price before vehicle name on small mobile */
+    .vehicle-grid:not(.list-layout) .vehicle-card .title-price {
+        flex-direction: row-reverse;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .vehicle-grid:not(.list-layout) .vehicle-card .vehicle-price {
+        order: 1;
+        text-align: right;
+    }
+
+    .vehicle-grid:not(.list-layout) .vehicle-card .title-container {
+        order: 2;
+        text-align: left;
+    }
+
+    .vehicle-card .title-price {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .vehicle-card .title-container,
+    .vehicle-grid.list-layout .vehicle-card .title-container {
         max-width: 100%;
-        padding: 1rem;
+        width: 100%;
+    }
+
+    .vehicle-card .vehicle-price,
+    .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+        font-size: 1rem !important;
+        text-align: left;
+        padding-left: 0;
+        width: 100%;
+    }
+
+    /* Further shrink image for very small mobile list view */
+    .vehicle-grid.list-layout .vehicle-card .image-container {
+        padding-top: 28% !important;
+    }
+
+    /* Tighten card body padding */
+    .vehicle-grid.list-layout .vehicle-card .card-body {
+        padding: 0.25rem 0.5rem 0.125rem 0.5rem !important;
+    }
+    
+    /* Reduce divider margin */
+    .vehicle-grid.list-layout .vehicle-card .card-divider {
+        margin: 0.125rem 0 0.2rem !important;
+    }
+
+    /* Force .vehicle-details to a single-row flex layout in mobile list view */
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 0.4rem !important;
+        width: 100% !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        margin-top: 0 !important;
+        padding-bottom: 0.5rem !important;
+    }
+    .vehicle-grid.list-layout .vehicle-card .vehicle-details .detail-item {
+        flex: 0 1 auto !important;
+        min-width: 0 !important;
+        font-size: 0.6rem !important;
+        white-space: nowrap !important;
+        justify-content: flex-start !important;
+        gap: 0.06rem !important;
+    }
+
+    /* Further reduce text size for very small mobile */
+    .vehicle-grid.list-layout .vehicle-card .vehicle-title,
+    .vehicle-grid.list-layout .vehicle-card h3.vehicle-title {
+        font-size: 0.9rem !important;
+    }
+    .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+        font-size: 0.9rem !important;
+    }
+    .vehicle-grid.list-layout .vehicle-card .listing-date {
+        font-size: 0.5rem !important;
     }
 } 

@@ -6,16 +6,16 @@
 {% block extra_css %}
 <style>
     .container {
-        max-width: 60vw;
-        width: 60vw;
+        max-width: 1200px;
+        width: 100%;
         margin: 0 auto;
-        padding: 2rem 1rem;
+        padding: 2rem 0.75rem;
     }
 
     /* Vehicle Type Scroll */
     .vehicle-types-container {
         position: relative;
-        width: 60vw;
+        width: 100%;
         margin: 0 auto 0rem auto;
     }
 
@@ -83,11 +83,11 @@
     }
 
     .nav-arrow.left {
-        left: -20px;
+        left: 0;
     }
 
     .nav-arrow.right {
-        right: -20px;
+        right: 0;
     }
 
     .nav-arrow:disabled {
@@ -102,8 +102,8 @@
         border-radius: 3rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         margin-bottom: 2rem;
-        max-width: 60vw;
-        width: 60vw;
+        max-width: 100%;
+        width: 100%;
         margin-left: auto;
         margin-right: auto;
         position: relative;
@@ -179,7 +179,7 @@
     /* Vehicle Listing Cards */
     .vehicle-card {
         background: #f8f9fa;
-        border-radius: 0 0 12px 12px;
+        border-radius: 12px;
         overflow: hidden;
         position: relative;
         margin-bottom: 1.5rem;
@@ -197,7 +197,6 @@
         position: relative;
         padding-top: 66.67%;
         overflow: hidden;
-        border-radius: 0;
     }
 
     .vehicle-card .image-container img {
@@ -207,6 +206,8 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 0 0 8px 8px;
+        margin-bottom: 0;
     }
 
     .vehicle-card .listing-date {
@@ -224,21 +225,38 @@
         position: absolute;
         top: 1rem;
         right: 1rem;
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         border: none;
-        border-radius: 50%;
-        width: 2rem;
-        height: 2rem;
+        border-radius: 8px;
+        width: auto;
+        height: auto;
+        padding: 0.4rem 0.6rem; /* smaller button */
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         transition: all 0.2s;
+        opacity: 0;
+        z-index: 5; /* Sit above image and body */
+    }
+
+    .vehicle-card:hover .favorite-btn {
+        opacity: 1;
+    }
+
+    .vehicle-card .favorite-btn i {
+        color: #CCCCCC; /* Unfavorited heart color */
+        font-size: 1rem; /* slightly smaller icon */
+        transition: color 0.2s;
     }
 
     .vehicle-card .favorite-btn:hover {
         background: #fff;
-        transform: scale(1.1);
+        transform: scale(1.05);
+    }
+
+    .vehicle-card .favorite-btn.active {
+        opacity: 1;
     }
 
     .vehicle-card .favorite-btn.active i {
@@ -247,46 +265,87 @@
 
     .vehicle-card .card-body {
         padding: 1rem;
+        background: #f8f9fa;
+        position: relative;
+        z-index: 1;
     }
 
     .vehicle-card .title-price {
         display: flex;
         justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 0.75rem;
+        align-items: center !important;
+        margin-bottom: 0.5rem;
+        gap: 1rem;
+    }
+
+    .vehicle-card .title-container {
+        flex: 0 0 50%;
+        width: 50%;
+        max-width: 50%;
+        overflow: hidden;
     }
 
     .vehicle-card .vehicle-title {
-        font-size: 1.1rem;
+        font-size: 1.2rem !important;
         font-weight: 600;
         margin: 0;
         color: #333;
+        line-height: 1;
+        padding: 0;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        display: block;
     }
 
     .vehicle-card .vehicle-price {
-        font-size: 1.1rem;
+        font-size: 1.2rem !important;
         font-weight: 600;
-        color: #28a745;
+        color: #2855a7 !important;
         white-space: nowrap;
+        line-height: 1;
+        padding: 0;
+    }
+
+    .vehicle-card .card-divider {
+        height: 2px;
+        background: #00000028;
+        width: 100%;
+        margin: 0.4rem 0 0.5rem;
     }
 
     .vehicle-card .vehicle-details {
         display: flex;
-        gap: 1rem;
-        font-size: 0.9rem;
+        justify-content: space-between;
+        width: 100%;
+        font-size: 0.8rem;
         color: #666;
+        margin-top: 0.5rem;
     }
 
     .vehicle-card .detail-item {
         display: flex;
         align-items: center;
         gap: 0.35rem;
+        flex: 1;
+        justify-content: center;
+    }
+
+    /* First item left-aligned */
+    .vehicle-card .detail-item:first-child {
+        justify-content: flex-start;
+    }
+
+    /* Last item right-aligned */
+    .vehicle-card .detail-item:last-child {
+        justify-content: flex-end;
     }
 
     .vehicle-card .detail-item i {
-        font-size: 0.9rem;
-        width: 1rem;
+        font-size: 0.8rem;
+        width: 0.9rem;
         text-align: center;
+        flex-shrink: 0;
     }
 
     @media (max-width: 48em) {
@@ -295,27 +354,390 @@
             padding: 1rem;
         }
     }
+
+    /* Tablet layout tweaks */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .search-filter {
+            padding: 1rem 1.5rem;
+        }
+
+        .search-filter .row {
+            flex-wrap: wrap;
+            gap: 0.75rem 1rem; /* row gap, column gap */
+            padding-right: 80px; /* Maintain space for the search button */
+        }
+
+        .search-filter .col-md {
+            flex: 0 0 calc(33.333% - 1rem);
+            max-width: calc(33.333% - 1rem);
+        }
+    }
+
+    /* Desktop responsive adjustments for search filter */
+    @media (min-width: 1200px) and (max-width: 1400px) {
+        .container {
+            /* Keep the container centred like on the homepage */
+            max-width: 1200px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .vehicle-types-container {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .search-filter {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .search-filter .col-md {
+            min-width: 100px;
+        }
+        
+        .search-filter .form-select,
+        .search-filter .form-control,
+        .search-filter .dropdown-toggle {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+
+    @media (min-width: 1025px) {
+        /* Keep full width up to 1200px, only side padding shrinks */
+        .container, .vehicle-types-container, .search-filter {
+            width: 100%;
+            max-width: 1200px;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    }
+
+    /* Tablet layout tweaks */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .container {
+            max-width: calc(100% - 40px);
+            width: calc(100% - 40px);
+            margin: 0 20px;
+            min-width: auto;
+        }
+
+        .vehicle-types-container,
+        .search-filter {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto 2rem auto;
+        }
+
+        .vehicle-type {
+            flex: 0 0 calc(16.666% - 0.833rem); /* 6 items per row */
+            min-width: calc(16.666% - 0.833rem);
+            padding: 1rem;
+        }
+
+        .vehicle-type i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-arrow {
+            display: flex; /* Show navigation arrows on tablet */
+            width: 36px;
+            height: 36px;
+        }
+
+        .nav-arrow.left {
+            left: -18px;
+        }
+
+        .nav-arrow.right {
+            right: -18px;
+        }
+
+        .vehicle-types {
+            overflow-x: hidden; /* Hide scrollbar but keep scroll functionality */
+            padding: 1rem 0;
+        }
+
+        .search-filter {
+            padding: 1rem 1.5rem;
+        }
+
+        .search-filter .row {
+            flex-wrap: wrap;
+            gap: 0.75rem 1rem; /* row gap, column gap */
+            padding-right: 80px; /* Maintain space for the search button */
+        }
+
+        .search-filter .col-md {
+            flex: 0 0 calc(33.333% - 1rem);
+            max-width: calc(33.333% - 1rem);
+        }
+
+        .vehicle-grid {
+            grid-template-columns: repeat(2, 1fr); /* 2 columns for tablets */
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        /* Ensure 2 cards per row in list layout (tablet) */
+        .vehicle-grid.list-layout {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
+    /* Mobile layout */
+    @media (max-width: 768px) {
+        /* Mobile Filter Toggle Button */
+        .mobile-filter-toggle {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-filter-toggle:hover {
+            background: #e9ecef;
+        }
+
+        .mobile-filter-toggle .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-filter-toggle[aria-expanded="true"] .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Ensure smooth animation for collapsible section */
+        #mobileFilterSection {
+            transition: all 0.3s ease-in-out;
+        }
+
+        .container {
+            max-width: calc(100% - 20px);
+            width: calc(100% - 20px);
+            margin: 0 10px;
+            min-width: auto;
+            padding: 1rem;
+        }
+
+        .vehicle-types-container,
+        .search-filter {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .vehicle-type {
+            flex: 0 0 calc(33.333% - 0.667rem); /* 3 items per row */
+            min-width: calc(33.333% - 0.667rem);
+            padding: 0.5rem;
+        }
+
+        .search-filter {
+            padding: 0.75rem;
+            border-radius: 1rem;
+        }
+
+        .search-filter .row {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding-right: 0;
+        }
+
+        .search-filter .col-md {
+            flex: 0 0 100%;
+        }
+
+        .search-btn {
+            position: static;
+            transform: none;
+            width: 100% !important;
+            margin-top: 0.5rem;
+        }
+
+        .vehicle-grid {
+            grid-template-columns: 1fr !important; /* Force single column */
+            gap: 1rem;
+            margin: 1rem 0;
+            width: 100%; /* Ensure full width minus margins */
+        }
+
+        /* Ensure vehicle cards take full width in mobile */
+        .vehicle-card {
+            width: 100%;
+            margin: 0;
+        }
+
+        /* Mobile list layout: horizontal card */
+        .vehicle-grid.list-layout {
+            grid-template-columns: 1fr !important; /* single card per row */
+        }
+
+        .vehicle-grid.list-layout .vehicle-card {
+            display: flex;
+            flex-direction: row; /* image left, details right */
+            min-height: 140px;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .image-container {
+            width: 40%;
+            height: 140px;
+            padding-top: 0;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .card-body {
+            width: 60%;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .title-price {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+            width: 100%;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .title-container,
+        .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            text-align: left;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .vehicle-title {
+            font-size: 1rem;
+            line-height: 1.2;
+            margin: 0;
+            padding: 0;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+            font-size: 1rem;
+            line-height: 1.2;
+            margin: 0;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .vehicle-details {
+            margin-top: auto;
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            gap: 0;
+            font-size: 0.75rem;
+            width: 100%;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .detail-item:first-child {
+            /* Year takes minimal space */
+            flex: 0 0 2.2rem;  /* Fixed width just enough for year */
+            margin-right: 0.15rem;  /* Small gap after year */
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .detail-item:not(:first-child) {
+            /* Mileage and location share remaining space */
+            flex: 1;  /* Equal share of remaining space */
+            min-width: 0;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .detail-item i {
+            flex-shrink: 0;
+            font-size: 0.7rem;  /* Smaller icon width */
+            text-align: center;
+            margin-right: 0.1rem;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .detail-item span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        .active-filters {
+            margin: 1rem 0;
+        }
+
+        .active-filters .badge {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    /* On mobile & tablet, heart always visible */
+    @media (max-width: 1024px) {
+        .vehicle-card .favorite-btn {
+            opacity: 1 !important; /* always visible */
+        }
+    }
+
+    /* Always show favorite button in list layout */
+    .vehicle-grid.list-layout .vehicle-card {
+        position: relative;
+    }
+    .vehicle-grid.list-layout .vehicle-card .favorite-btn {
+        top: 0.75rem;
+        right: 0.75rem;
+        display: flex;
+        opacity: 0; /* hidden by default on desktop */
+        z-index: 10;
+    }
+
+    /* Ensure heart visible in list layout for mobile/tablet */
+    @media (max-width: 1024px) {
+        .vehicle-grid.list-layout .vehicle-card .favorite-btn { opacity: 1 !important; }
+    }
+
+    /* Show heart when hovered (desktop) */
+    .vehicle-grid.list-layout .vehicle-card:hover .favorite-btn,
+    .vehicle-grid.list-layout .vehicle-card:focus-within .favorite-btn {
+        opacity: 1;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container">
-    <!-- Vehicle Types -->
-    <div class="vehicle-types-container">
-        <button class="nav-arrow left" id="scrollLeft">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <div class="vehicle-types" id="vehicleTypes">
-            {% include 'ads/includes/vehicle_types.html' %}
-        </div>
-        <button class="nav-arrow right" id="scrollRight">
-            <i class="fas fa-chevron-right"></i>
+    <!-- Mobile Filter Toggle Button -->
+    <div class="d-lg-none mb-3">
+        <button class="btn btn-light w-100 d-flex justify-content-between align-items-center py-3 mobile-filter-toggle" 
+                type="button" 
+                data-bs-toggle="collapse" 
+                data-bs-target="#mobileFilterSection">
+            <span><i class="fas fa-sliders-h me-2"></i>Filters</span>
+            <i class="fas fa-chevron-down toggle-icon"></i>
         </button>
     </div>
 
-    <!-- Search Filter -->
-    <div class="search-filter">
-        {% include 'ads/includes/search_filter.html' %}
+    <!-- Collapsible Filter Section for Mobile -->
+    <div class="collapse d-lg-block" id="mobileFilterSection">
+        <!-- Vehicle Types -->
+        <div class="vehicle-types-container">
+            <button class="nav-arrow left" id="scrollLeft">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="vehicle-types" id="vehicleTypes">
+                {% include 'ads/includes/vehicle_types.html' %}
+            </div>
+            <button class="nav-arrow right" id="scrollRight">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Search Filter -->
+        <div class="search-filter">
+            {% include 'ads/includes/search_filter.html' %}
+        </div>
     </div>
 
     <!-- Active Filters -->
@@ -375,44 +797,7 @@
     {% if vehicles %}
     <div class="vehicle-grid">
         {% for vehicle in vehicles %}
-        <a href="{% url 'ads:detail' vehicle.id %}" class="vehicle-card">
-            <div class="image-container">
-                {% if vehicle.images.first %}
-                <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.make }} {{ vehicle.model }}">
-                {% endif %}
-                <div class="listing-date">{{ vehicle.created_at|date:"M d, Y" }}</div>
-                {% if user.is_authenticated %}
-                <button class="favorite-btn {% if vehicle in user.favorite_vehicles.all %}active{% endif %}" 
-                        onclick="event.preventDefault(); toggleFavorite(this)" 
-                        data-vehicle-id="{{ vehicle.id }}">
-                    <i class="fas fa-heart"></i>
-                </button>
-                {% endif %}
-            </div>
-            <div class="card-body">
-                <div class="title-price">
-                    <div class="title-container">
-                        <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
-                    </div>
-                    <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
-                </div>
-                <div class="card-divider"></div>
-                <div class="vehicle-details">
-                    <div class="detail-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>{{ vehicle.registered|default:vehicle.year }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-road"></i>
-                        <span>{{ vehicle.mileage }}km</span>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span>{{ vehicle.location }}</span>
-                    </div>
-                </div>
-            </div>
-        </a>
+        {% include 'ads/includes/vehicle_card.html' with vehicle=vehicle %}
         {% endfor %}
     </div>
     {% else %}
@@ -428,33 +813,58 @@
 <script>
 // Vehicle type navigation
 document.addEventListener('DOMContentLoaded', function() {
+    // Mobile Filter Toggle Animation
+    const mobileFilterSection = document.getElementById('mobileFilterSection');
+    if (mobileFilterSection) {
+        mobileFilterSection.addEventListener('show.bs.collapse', function () {
+            // Smooth scroll to top of filter section when opening
+            setTimeout(() => {
+                window.scrollTo({
+                    top: document.querySelector('.mobile-filter-toggle').offsetTop - 10,
+                    behavior: 'smooth'
+                });
+            }, 300);
+        });
+    }
+
     const vehicleTypes = document.getElementById('vehicleTypes');
     const scrollLeft = document.getElementById('scrollLeft');
     const scrollRight = document.getElementById('scrollRight');
-    const itemWidth = vehicleTypes.querySelector('.vehicle-type').offsetWidth;
-    const gap = 16; // 1rem gap
-    const scrollAmount = (itemWidth + gap) * 4; // Scroll 4 items at a time
+    
+    function getScrollAmount() {
+        const itemWidth = vehicleTypes.querySelector('.vehicle-type').offsetWidth;
+        const computedStyle = window.getComputedStyle(vehicleTypes);
+        const gap = parseInt(computedStyle.columnGap || computedStyle.gap || 16);
+        // On mobile (< 768px) scroll 2 items, on tablet (< 1024px) scroll 3 items, otherwise scroll 4 items
+        const itemsToScroll = window.innerWidth < 768 ? 3 : (window.innerWidth < 1024 ? 3 : 4);
+        return (itemWidth + gap) * itemsToScroll;
+    }
 
     function updateScrollButtons() {
         scrollLeft.disabled = vehicleTypes.scrollLeft <= 0;
         scrollRight.disabled = vehicleTypes.scrollLeft >= vehicleTypes.scrollWidth - vehicleTypes.clientWidth;
     }
 
-    scrollLeft.addEventListener('click', () => {
-        vehicleTypes.scrollBy({
-            left: -scrollAmount,
-            behavior: 'smooth'
-        });
-    });
+    function scrollLeftBy() {
+        const amount = getScrollAmount();
+        const newLeft = Math.max(vehicleTypes.scrollLeft - amount, 0);
+        vehicleTypes.scrollTo({ left: newLeft, behavior: 'smooth' });
+        updateScrollButtons();
+    }
 
-    scrollRight.addEventListener('click', () => {
-        vehicleTypes.scrollBy({
-            left: scrollAmount,
-            behavior: 'smooth'
-        });
-    });
+    function scrollRightBy() {
+        const amount = getScrollAmount();
+        const maxLeft = vehicleTypes.scrollWidth - vehicleTypes.clientWidth;
+        const newLeft = Math.min(vehicleTypes.scrollLeft + amount, maxLeft);
+        vehicleTypes.scrollTo({ left: newLeft, behavior: 'smooth' });
+        updateScrollButtons();
+    }
+
+    scrollLeft.addEventListener('click', scrollLeftBy);
+    scrollRight.addEventListener('click', scrollRightBy);
 
     vehicleTypes.addEventListener('scroll', updateScrollButtons);
+    window.addEventListener('resize', updateScrollButtons);
     updateScrollButtons();
 
     // Map vehicle types to URL slugs

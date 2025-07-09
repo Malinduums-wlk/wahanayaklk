@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import CustomUserCreationForm, UserProfileForm, UserNameForm, ShopForm
-from ads.models import Vehicle
+from ads.models import Vehicle, Favorite
 from django.contrib.auth.models import User
 from django.db.models import Count
 from .models import UserProfile, Shop
@@ -10,6 +10,8 @@ from django.http import JsonResponse
 import json
 from datetime import datetime
 from django.utils import timezone
+from django.db.models import Q
+from django.urls import reverse
 
 # Create your views here.
 
@@ -96,9 +98,20 @@ def my_ads(request):
     })
 
 @login_required
+def my_favorites(request):
+    favorites = Favorite.objects.filter(user=request.user).select_related('vehicle').prefetch_related('vehicle__images').order_by('-created_at')
+    favorite_vehicles = [favorite.vehicle for favorite in favorites if favorite.vehicle.status == 'approved']
+    
+    return render(request, 'users/my_favorites.html', {
+        'favorite_vehicles': favorite_vehicles
+    })
+
+@login_required
 @user_passes_test(is_admin)
 def admin_dashboard(request):
     section = request.GET.get('section', 'registered')  # Default to registered users
+    search_query = request.GET.get('search', '')
+    
     total_users = User.objects.filter(is_superuser=False).count()
     pending_ads = Vehicle.objects.filter(status='pending').count()
     approved_ads = Vehicle.objects.filter(status='approved').count()
@@ -108,28 +121,70 @@ def admin_dashboard(request):
         'total_users': total_users,
         'pending_ads': pending_ads,
         'approved_ads': approved_ads,
+        'search_query': search_query,
     }
 
     # Add section-specific data
     if section == 'registered':
-        recent_users = User.objects.filter(is_superuser=False).order_by('-date_joined')[:5]
+        users_query = User.objects.filter(is_superuser=False).select_related('userprofile')
+        
+        # Apply search if query exists
+        if search_query:
+            users_query = users_query.filter(
+                Q(username__icontains=search_query) |
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(email__icontains=search_query) |
+                Q(userprofile__contact_phone__icontains=search_query) |
+                Q(userprofile__whatsapp_number__icontains=search_query) |
+                Q(userprofile__unique_id__icontains=search_query) |
+                Q(shop__company_name__icontains=search_query)
+            ).distinct().select_related('shop')
+        
+        users_query = users_query.order_by('-date_joined')
+        
+        # Get all users if searching, otherwise get only recent 5
+        if search_query:
+            recent_users = users_query
+        else:
+            recent_users = users_query[:5]
+            
         context['recent_users'] = [
             {
                 'user': u,
-                'profile': getattr(u, 'userprofile', None),
-                'shop': Shop.objects.filter(user=u).first() if getattr(u, 'userprofile', None) and getattr(u, 'userprofile', None).is_premium else None
+                'profile': u.userprofile if hasattr(u, 'userprofile') else None,
+                'shop': getattr(u, 'shop', None) if hasattr(u, 'userprofile') and u.userprofile and u.userprofile.is_premium else None
             } for u in recent_users
         ]
     elif section == 'pending':
         # Get pending vehicles with related user and image data
-        context['pending_vehicles'] = Vehicle.objects.filter(
+        pending_query = Vehicle.objects.filter(
             status='pending'
         ).select_related(
             'user',
             'user__userprofile'
         ).prefetch_related(
             'images'
-        ).order_by('-created_at')
+        )
+        
+        # Apply search if query exists
+        if search_query:
+            pending_query = pending_query.filter(
+                Q(ad_id__icontains=search_query) |
+                Q(make__icontains=search_query) |
+                Q(model__icontains=search_query) |
+                Q(location__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(vehicle_type__icontains=search_query) |
+                Q(user__username__icontains=search_query) |
+                Q(user__first_name__icontains=search_query) |
+                Q(user__last_name__icontains=search_query) |
+                Q(user__userprofile__unique_id__icontains=search_query) |
+                Q(phone_number__icontains=search_query) |
+                Q(whatsapp_number__icontains=search_query)
+            ).distinct()
+            
+        context['pending_vehicles'] = pending_query.order_by('-created_at')
     elif section == 'admgmt':
         # Get all vehicles with their status
         context['all_vehicles'] = Vehicle.objects.all().select_related(
@@ -165,6 +220,11 @@ def manage_ad(request, vehicle_id):
             messages.success(request, 'Ad rejected successfully')
         
         vehicle.save()
+        
+        # Get the current section from referer URL or default to 'pending'
+        current_section = request.GET.get('section', 'pending')
+        return redirect(f'{reverse("users:admin_dashboard")}?section={current_section}')
+        
     return redirect('users:admin_dashboard')
 
 @login_required

@@ -173,7 +173,7 @@ footer {
     .custom-container,
     .form-container,
     .navbar .container {
-        width: 60vw;
+        width: 100%;
     }
 }
 

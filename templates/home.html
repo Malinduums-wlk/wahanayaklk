@@ -1,10 +1,40 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load ads_extras %}
 
 {% block title %}Welcome to Wahanayak.lk{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* Homepage wrapper - similar to vehicle-detail */
+    .homepage-wrapper {
+        padding: 0;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    @media (min-width: 1025px) {
+        /* Keep max-width but allow full width within margins */
+        .homepage-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+    }
+
+    /* Override container styles inside homepage wrapper */
+    .homepage-wrapper .container,
+    .homepage-wrapper .custom-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: auto !important;
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        margin: 0 auto;
+    }
+
     /* Hero Section */
     .hero-section {
         height: 50vh;
@@ -25,7 +55,7 @@
     /* Vehicle Type Scroll */
     .vehicle-types-container {
         position: relative;
-        width: 60vw;
+        width: 100%;
         margin: 0 auto 0rem auto;
     }
 
@@ -53,6 +83,41 @@
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 0.85rem;
+    }
+
+    .vehicle-type div {
+        white-space: nowrap;
+        overflow: hidden;
+        width: 100%;
+        position: relative;
+    }
+
+    .vehicle-type div:hover {
+        overflow: visible;
+    }
+
+    .vehicle-type div span {
+        display: inline-block;
+        white-space: nowrap;
+        padding: 0 2px;
+        transition: transform 0.3s ease;
+    }
+
+    /* Applied dynamically via JS when text is longer than its container */
+    .vehicle-type div span.scrolling {
+        animation: scroll-text 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes scroll-text {
+        0% { 
+            transform: translateX(0); 
+        }
+        50% {
+            transform: translateX(calc(-1 * var(--scroll-distance)));
+        }
+        100% { 
+            transform: translateX(0); 
+        }
     }
 
     .vehicle-type:hover,
@@ -90,11 +155,11 @@
     }
 
     .nav-arrow.left {
-        left: -20px;
+        left: 0;
     }
 
     .nav-arrow.right {
-        right: -20px;
+        right: 0;
     }
 
     .nav-arrow:disabled {
@@ -105,28 +170,30 @@
     /* Search Filter */
     .search-filter {
         background: #ffffff;
-        padding: 0.5rem 1.25rem;
+        padding: 0.75rem 1.25rem;
         border-radius: 3rem;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         margin-bottom: 2rem;
-        max-width: 60vw;
-        width: 60vw;
+        max-width: 100%;
+        width: 100%;
         margin-left: auto;
         margin-right: auto;
         position: relative;
+        min-height: 60px;
     }
 
     .search-filter .row {
         align-items: center;
         width: 100%;
         flex-wrap: nowrap;
-        padding-right: 80px; /* Make space for the search button */
+        padding-right: 85px; /* Make space for the search button */
+        gap: 0.75rem;
     }
 
     .search-filter .col-md {
         position: relative;
         flex: 1 1 0;
-        min-width: 0;
+        min-width: 120px;
     }
 
     /* Ensure controls stretch full width inside each column */
@@ -134,13 +201,44 @@
     .search-filter .form-control,
     .search-filter .btn {
         width: 100%;
+        height: 40px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .search-filter .form-select:focus,
+    .search-filter .form-control:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+    }
+
+    /* Dropdown specific styling */
+    .search-filter .dropdown-toggle {
+        height: 40px;
+        border-radius: 20px;
+        border: 1px solid #ddd;
+        background: white;
+        color: #495057;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .search-filter .dropdown-toggle:focus {
+        border-color: #4361ee;
+        box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
     }
 
     /* Oval search button */
     .search-btn {
-        width: 70px !important;
-        height: 40px !important;
-        border-radius: 20px;
+        width: 75px !important;
+        height: 45px !important;
+        border-radius: 22.5px;
         background: #4361ee;
         color: #fff;
         border: none;
@@ -150,9 +248,10 @@
         box-shadow: 0 2px 6px rgba(67, 97, 238, 0.35);
         transition: background 0.3s ease;
         position: absolute;
-        right: 1.25rem;
+        right: 1rem;
         top: 50%;
         transform: translateY(-50%);
+        font-size: 1rem;
     }
 
     .search-btn:hover {
@@ -162,6 +261,49 @@
     /* Adjust dropdown toggle to remove default caret spacing */
     .search-filter .dropdown-toggle::after {
         margin-left: 0.5rem;
+    }
+
+    /* Desktop responsive adjustments for search filter */
+    @media (min-width: 1200px) and (max-width: 1400px) {
+        .search-filter .col-md {
+            min-width: 100px;
+        }
+        
+        .search-filter .form-select,
+        .search-filter .form-control,
+        .search-filter .dropdown-toggle {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+
+    @media (min-width: 1025px) and (max-width: 1199px) {
+        .search-filter {
+            padding: 0.6rem 1rem;
+        }
+        
+        .search-filter .row {
+            gap: 0.5rem;
+            padding-right: 80px;
+        }
+        
+        .search-filter .col-md {
+            min-width: 90px;
+        }
+        
+        .search-filter .form-select,
+        .search-filter .form-control,
+        .search-filter .dropdown-toggle {
+            font-size: 0.8rem;
+            padding: 0.35rem 0.7rem;
+            height: 38px;
+        }
+        
+        .search-btn {
+            width: 70px !important;
+            height: 42px !important;
+            border-radius: 21px;
+        }
     }
 
     /* Urgent Selling Section */
@@ -180,8 +322,8 @@
 
     .vehicle-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 2rem;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
         margin: 2rem 0;
     }
 
@@ -198,10 +340,12 @@
         margin: 0;
         color: #333;
     }
-    .vehicle-card .vehicle-price { font-size: 1.1rem; font-weight: 600; color: #28a745; white-space: nowrap; }
-    .vehicle-card .vehicle-details { display: flex; gap: 1rem; font-size: 0.9rem; color: #666; }
-    .vehicle-card .detail-item { display: flex; align-items: center; gap: 0.35rem; }
-    .vehicle-card .detail-item i { font-size: 0.9rem; width: 1rem; text-align: center; }
+    .vehicle-card .vehicle-price { font-size: 1.2rem !important; font-weight: 600; color: #2855a7 !important; white-space: nowrap; }
+    .vehicle-card .vehicle-details { display: flex; justify-content: space-between; width: 100%; font-size: 0.8rem; color: #666; margin-top: 0.5rem; }
+    .vehicle-card .detail-item { display: flex; align-items: center; gap: 0.35rem; flex: 1; justify-content: center; }
+    .vehicle-card .detail-item:first-child { justify-content: flex-start; }
+    .vehicle-card .detail-item:last-child { justify-content: flex-end; }
+    .vehicle-card .detail-item i { font-size: 0.8rem; width: 0.9rem; text-align: center; flex-shrink: 0; }
 
     /* Contact Section */
     .contact-section {
@@ -236,10 +380,292 @@
         text-decoration: none;
     }
 
+    /* Responsive Styles */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .homepage-wrapper .container,
+        .homepage-wrapper .custom-container {
+            width: calc(100% - 40px) !important;
+            max-width: calc(100% - 40px) !important;
+            margin: 0 20px !important;
+        }
+
+        .vehicle-types-container,
+        .search-filter {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto 2rem auto;
+        }
+
+        .vehicle-type {
+            flex: 0 0 calc(16.666% - 0.833rem); /* 6 items per row */
+            min-width: calc(16.666% - 0.833rem);
+            padding: 1rem;
+        }
+
+        .vehicle-type i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-arrow {
+            display: flex; /* Show navigation arrows on tablet */
+            width: 36px;
+            height: 36px;
+        }
+
+        .nav-arrow.left {
+            left: 0;
+        }
+
+        .nav-arrow.right {
+            right: 0;
+        }
+
+        .vehicle-types {
+            overflow-x: hidden; /* Hide scrollbar but keep scroll functionality */
+            padding: 1rem 0;
+        }
+
+        .search-filter {
+            padding: 1rem 1.5rem;
+        }
+
+        /* Allow search filter inputs to wrap into 2 rows */
+        .search-filter .row {
+            flex-wrap: wrap;
+            gap: 0.75rem 1rem; /* row gap, column gap */
+            padding-right: 85px; /* Keep space for the search button */
+        }
+
+        /* Show 3 items per row (6 total) */
+        .search-filter .col-md {
+            flex: 0 0 calc(33.333% - 1rem);
+            max-width: calc(33.333% - 1rem);
+        }
+
+        .search-btn {
+            width: 80px !important;
+            height: 45px !important;
+        }
+
+        .vehicle-grid {
+            grid-template-columns: repeat(2, 1fr); /* 2 columns for tablets */
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            margin: 1.5rem 0;
+        }
+
+        .contact-section {
+            margin-top: 6rem;
+            padding: 0;
+        }
+
+        .whatsapp-btn {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Ensure hero section looks good on tablets */
+        .hero-section {
+            height: 45vh;
+        }
+
+        .hero-title {
+            font-size: 2.2rem;
+            max-width: 80%;
+            margin: 0 auto 2rem auto;
+        }
+
+        /* Ensure 2 cards per row in list layout (tablet) */
+        .vehicle-grid.list-layout {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
     @media (max-width: 768px) {
-        .custom-container {
-            max-width: 95vw;
-            width: 95vw;
+        .homepage-wrapper {
+            width: calc(100% - 20px);
+            max-width: calc(100% - 20px);
+            margin: 0 10px;
+            min-width: auto;
+        }
+
+        .hero-section {
+            height: 40vh;
+            padding: 1rem;
+        }
+
+        .hero-title {
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .vehicle-types-container,
+        .search-filter {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .vehicle-type {
+            flex: 0 0 calc(33.333% - 0.667rem); /* 3 items per row */
+            min-width: calc(33.333% - 0.667rem);
+            padding: 0.5rem;
+        }
+
+        .search-filter {
+            padding: 0.75rem;
+            border-radius: 1rem;
+        }
+
+        .search-filter .row {
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding-right: 0;
+        }
+
+        .search-filter .col-md {
+            flex: 0 0 100%;
+        }
+
+        .search-btn {
+            position: static;
+            transform: none;
+            width: 100% !important;
+            margin-top: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            margin: 1rem 0;
+        }
+
+        .vehicle-grid {
+            grid-template-columns: 1fr !important; /* Force single column */
+            gap: 1rem;
+            margin: 1rem 0;
+            width: 100%; /* Ensure full width minus margins */
+        }
+
+        /* Ensure vehicle cards take full width in mobile */
+        .vehicle-card {
+            width: 100%;
+            margin: 0;
+        }
+
+        /* Mobile list layout: horizontal card */
+        .vehicle-grid.list-layout {
+            grid-template-columns: 1fr !important; /* single card per row */
+        }
+
+        .vehicle-grid.list-layout .vehicle-card {
+            display: flex;
+            flex-direction: row; /* image left, details right */
+            min-height: 140px;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .image-container {
+            flex: 0 0 40%;
+            padding-top: 0; /* remove aspect ratio padding */
+            position: relative;
+            height: 140px;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .card-body {
+            flex: 0 0 60%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1rem;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .title-price {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+            width: 100%;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .title-container,
+        .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            text-align: left;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .vehicle-title {
+            font-size: 1rem;
+            line-height: 1.2;
+            margin: 0;
+            padding: 0;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .vehicle-price {
+            font-size: 1rem;
+            line-height: 1.2;
+            margin: 0;
+            padding: 0;
+            color: #2855a7;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .vehicle-details {
+            margin-top: auto;
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            gap: 0;
+            font-size: 0.75rem;
+            width: 100%;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .detail-item:first-child {
+            /* Year takes minimal space */
+            flex: 0 0 2.2rem;  /* Fixed width just enough for year */
+            margin-right: 0.15rem;  /* Small gap after year */
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .detail-item:not(:first-child) {
+            /* Mileage and location share remaining space */
+            flex: 1;  /* Equal share of remaining space */
+            min-width: 0;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .detail-item i {
+            flex-shrink: 0;
+            font-size: 0.7rem;  /* Smaller icon width */
+            text-align: center;
+            margin-right: 0.1rem;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .detail-item span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        .vehicle-grid.list-layout .vehicle-card .card-divider {
+            display: block;
+            height: 1px;
+            background: #e0e0e0;
+            width: 100%;
+            margin: 0.75rem 0;
+        }
+
+        .contact-section {
+            margin-top: 4rem;
+            padding: 0;
+        }
+
+        .whatsapp-btn {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
         }
     }
 
@@ -253,6 +679,64 @@
     .search-btn i {
         margin-left: 2px;
     }
+
+    /* Favorite button styles reused from search results */
+    .vehicle-card .favorite-btn {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        border-radius: 8px;
+        padding: 0.4rem 0.6rem; /* smaller button */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        opacity: 0;
+        z-index: 5;
+    }
+
+    .vehicle-card:hover .favorite-btn {
+        opacity: 1;
+    }
+
+    .vehicle-card .favorite-btn i {
+        color: #CCCCCC; /* Unfavorited heart color */
+        font-size: 1rem; /* slightly smaller icon */
+        transition: color 0.2s;
+    }
+
+    .vehicle-card .favorite-btn.active {
+        opacity: 1;
+    }
+    .vehicle-card .favorite-btn.active i {
+        color: #dc3545;
+    }
+
+    /* On mobile & tablet, heart always visible */
+    @media (max-width: 1024px) {
+        .vehicle-card .favorite-btn { opacity: 1 !important; }
+    }
+
+    /* List layout specific placement */
+    .vehicle-grid.list-layout .vehicle-card {
+        position: relative;
+    }
+    .vehicle-grid.list-layout .vehicle-card .favorite-btn {
+        top: 0.75rem;
+        right: 0.75rem;
+        opacity: 0;
+    }
+    /* Show on hover for desktop */
+    .vehicle-grid.list-layout .vehicle-card:hover .favorite-btn,
+    .vehicle-grid.list-layout .vehicle-card:focus-within .favorite-btn { opacity: 1; }
+
+    /* Mobile / tablet always visible */
+    @media (max-width: 1024px) {
+        .vehicle-grid.list-layout .vehicle-card .favorite-btn { opacity: 1 !important; }
+    }
 </style>
 {% endblock %}
 
@@ -264,204 +748,183 @@
     </div>
 </div>
 
-<div class="custom-container">
-    <!-- Vehicle Types -->
-    <div class="vehicle-types-container">
-        <button class="nav-arrow left" id="scrollLeft">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <div class="vehicle-types" id="vehicleTypes">
-            <div class="vehicle-type">
-                <i class="fas fa-car"></i>
-                <div>Car</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-motorcycle"></i>
-                <div>Motorcycle</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-truck-pickup"></i>
-                <div>3-Wheeler</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-shuttle-van"></i>
-                <div>Van</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-car-side"></i>
-                <div>Suv/Jeep</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-truck-pickup"></i>
-                <div>Pickup/Double Cab</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-bus"></i>
-                <div>Bus</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-truck"></i>
-                <div>Lorry/Truck</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-truck"></i>
-                <div>Heavy Duty</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-tractor"></i>
-                <div>Tractor</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-bicycle"></i>
-                <div>Bicycle</div>
-            </div>
-            <div class="vehicle-type">
-                <i class="fas fa-car-side"></i>
-                <div>Other</div>
-            </div>
-        </div>
-        <button class="nav-arrow right" id="scrollRight">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
-
-    <!-- Search Filter -->
-    <div class="search-filter">
-        <div class="row g-3">
-            <div class="col-md">
-                <select class="form-select" id="makeSelect">
-                    <option value="" selected>Make</option>
-                    <option value="mazda">Mazda</option>
-                    <option value="toyota">Toyota</option>
-                    <option value="bmw">BMW</option>
-                    <option value="nissan">Nissan</option>
-                    <option value="honda">Honda</option>
-                    <option value="mercedes">Mercedes-Benz</option>
-                    <option value="audi">Audi</option>
-                    <option value="volkswagen">Volkswagen</option>
-                    <option value="ford">Ford</option>
-                    <option value="hyundai">Hyundai</option>
-                </select>
-            </div>
-            <div class="col-md">
-                <input type="text" class="form-control" id="modelInput" placeholder="Model">
-            </div>
-            <div class="col-md">
-                <select class="form-select" id="conditionSelect">
-                    <option value="any" selected>Any Condition</option>
-                    <option value="new">Brand New</option>
-                    <option value="used">Used (Registered)</option>
-                    <option value="reconditioned">Recondition (Unregistered)</option>
-                </select>
-            </div>
-            <div class="col-md">
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="priceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        Price
-                    </button>
-                    <div class="dropdown-menu p-3" style="width: 300px;">
-                        <div class="mb-3">
-                            <input type="number" class="form-control" id="minPrice" placeholder="Min Price">
-                        </div>
-                        <div class="mb-3">
-                            <input type="number" class="form-control" id="maxPrice" placeholder="Max Price">
-                        </div>
-                        <button class="btn btn-primary w-100" id="applyPrice">Apply</button>
-                    </div>
+<!-- Homepage wrapper for fixed width content -->
+<div class="homepage-wrapper">
+    <div class="container">
+        <!-- Vehicle Types -->
+        <div class="vehicle-types-container">
+            <button class="nav-arrow left" id="scrollLeft">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="vehicle-types" id="vehicleTypes">
+                <div class="vehicle-type">
+                    <i class="fas fa-car"></i>
+                    <div><span>Car</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-motorcycle"></i>
+                    <div><span>Motorcycle</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-truck-pickup"></i>
+                    <div><span>3-Wheeler</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-shuttle-van"></i>
+                    <div><span>Van</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-car-side"></i>
+                    <div><span>Suv/Jeep</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-truck-pickup"></i>
+                    <div><span>Pickup/Double Cab</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-bus"></i>
+                    <div><span>Bus</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-truck"></i>
+                    <div><span>Lorry/Truck</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-truck"></i>
+                    <div><span>Heavy Duty</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-tractor"></i>
+                    <div><span>Tractor</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-bicycle"></i>
+                    <div><span>Bicycle</span></div>
+                </div>
+                <div class="vehicle-type">
+                    <i class="fas fa-car-side"></i>
+                    <div><span>Other</span></div>
                 </div>
             </div>
-            <div class="col-md">
-                <select class="form-select" id="citySelect">
-                    <option value="any" selected>Any City</option>
-                    <optgroup label="Western Province">
-                        <option value="any_western">Any City in Western Province</option>
-                        <option value="colombo">Colombo</option>
-                        <option value="gampaha">Gampaha</option>
-                        <option value="kalutara">Kalutara</option>
-                    </optgroup>
-                    <optgroup label="Central Province">
-                        <option value="any_central">Any City in Central Province</option>
-                        <option value="kandy">Kandy</option>
-                        <option value="matale">Matale</option>
-                        <option value="nuwara_eliya">Nuwara Eliya</option>
-                    </optgroup>
-                    <optgroup label="Southern Province">
-                        <option value="any_southern">Any City in Southern Province</option>
-                        <option value="galle">Galle</option>
-                        <option value="matara">Matara</option>
-                        <option value="hambantota">Hambantota</option>
-                    </optgroup>
-                </select>
-            </div>
-            <div class="col-md">
-                <select class="form-select" id="fuelSelect">
-                    <option value="any" selected>Any Fuel</option>
-                    <option value="petrol">Petrol</option>
-                    <option value="diesel">Diesel</option>
-                    <option value="electric">Electric</option>
-                    <option value="hybrid">Hybrid</option>
-                </select>
-            </div>
-        </div>
-        <button class="btn search-btn" id="searchButton">
-            <i class="fas fa-search"></i>
-        </button>
-    </div>
-
-    <!-- Urgent Selling Section -->
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <h2 class="section-title mb-0">
-            <i class="fas fa-fire"></i>
-            Urgent Selling
-        </h2>
-        <div class="layout-switcher">
-            <button class="layout-btn active" title="Grid Layout">
-                <i class="fas fa-th-large fa-lg"></i>
-            </button>
-            <button class="layout-btn" title="List Layout">
-                <i class="fas fa-list fa-lg"></i>
+            <button class="nav-arrow right" id="scrollRight">
+                <i class="fas fa-chevron-right"></i>
             </button>
         </div>
-    </div>
-    <div class="vehicle-grid">
-        {% if urgent_vehicles %}
-            {% for vehicle in urgent_vehicles %}
-            <a href="{% url 'ads:detail' vehicle.id %}" class="vehicle-card">
-                <div class="image-container">
-                    {% if vehicle.images.first %}
-                    <img src="{{ vehicle.images.first.image.url }}" alt="{{ vehicle.title }}">
-                    {% else %}
-                    <img src="{% static 'images/no-image.jpg' %}" alt="No image available">
-                    {% endif %}
-                    <div class="listing-date">{{ vehicle.created_at|date:'Y-m-d' }}</div>
-                    <button class="favorite-btn {% if vehicle in user.favorites.all %}active{% endif %}" data-vehicle-id="{{ vehicle.id }}" onclick="toggleFavorite(this)"><i class="fas fa-heart"></i></button>
+
+        <!-- Search Filter -->
+        <div class="search-filter">
+            <div class="row g-3">
+                <div class="col-md">
+                    <select class="form-select" id="makeSelect">
+                        <option value="" selected>Make</option>
+                        <option value="mazda">Mazda</option>
+                        <option value="toyota">Toyota</option>
+                        <option value="bmw">BMW</option>
+                        <option value="nissan">Nissan</option>
+                        <option value="honda">Honda</option>
+                        <option value="mercedes">Mercedes-Benz</option>
+                        <option value="audi">Audi</option>
+                        <option value="volkswagen">Volkswagen</option>
+                        <option value="ford">Ford</option>
+                        <option value="hyundai">Hyundai</option>
+                    </select>
                 </div>
-                <div class="card-body">
-                    <div class="title-price">
-                        <div class="title-container">
-                            <h3 class="vehicle-title">{{ vehicle.make }} {{ vehicle.model }}</h3>
+                <div class="col-md">
+                    <input type="text" class="form-control" id="modelInput" placeholder="Model">
+                </div>
+                <div class="col-md">
+                    <select class="form-select" id="conditionSelect">
+                        <option value="any" selected>Any Condition</option>
+                        <option value="new">Brand New</option>
+                        <option value="used">Used (Registered)</option>
+                        <option value="reconditioned">Recondition (Unregistered)</option>
+                    </select>
+                </div>
+                <div class="col-md">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" id="priceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            Price
+                        </button>
+                        <div class="dropdown-menu p-3" style="width: 300px;">
+                            <div class="mb-3">
+                                <input type="number" class="form-control" id="minPrice" placeholder="Min Price">
+                            </div>
+                            <div class="mb-3">
+                                <input type="number" class="form-control" id="maxPrice" placeholder="Max Price">
+                            </div>
+                            <button class="btn btn-primary w-100" id="applyPrice">Apply</button>
                         </div>
-                        <div class="vehicle-price">Rs. {{ vehicle.price|floatformat:"0" }}</div>
-                    </div>
-                    <div class="card-divider"></div>
-                    <div class="vehicle-details">
-                        {% if vehicle.year %}<div class="detail-item"><i class="fas fa-calendar-alt"></i><span>{{ vehicle.year }}</span></div>{% endif %}
-                        {% if vehicle.mileage %}<div class="detail-item"><i class="fas fa-road"></i><span>{{ vehicle.mileage }} km</span></div>{% endif %}
-                        <div class="detail-item"><i class="fas fa-map-marker-alt"></i><span>{{ vehicle.location }}</span></div>
                     </div>
                 </div>
+                <div class="col-md">
+                    <select class="form-select" id="citySelect">
+                        <option value="any" selected>Any City</option>
+                        <optgroup label="Western Province">
+                            <option value="any_western">Any City in Western Province</option>
+                            <option value="colombo">Colombo</option>
+                            <option value="gampaha">Gampaha</option>
+                            <option value="kalutara">Kalutara</option>
+                        </optgroup>
+                        <optgroup label="Central Province">
+                            <option value="any_central">Any City in Central Province</option>
+                            <option value="kandy">Kandy</option>
+                            <option value="matale">Matale</option>
+                            <option value="nuwara_eliya">Nuwara Eliya</option>
+                        </optgroup>
+                        <optgroup label="Southern Province">
+                            <option value="any_southern">Any City in Southern Province</option>
+                            <option value="galle">Galle</option>
+                            <option value="matara">Matara</option>
+                            <option value="hambantota">Hambantota</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="col-md">
+                    <select class="form-select" id="fuelSelect">
+                        <option value="any" selected>Any Fuel</option>
+                        <option value="petrol">Petrol</option>
+                        <option value="diesel">Diesel</option>
+                        <option value="electric">Electric</option>
+                        <option value="hybrid">Hybrid</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn search-btn" id="searchButton">
+                <i class="fas fa-search"></i>
+            </button>
+        </div>
+
+        <!-- Urgent Selling Section -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h2 class="section-title mb-0">
+                <i class="fas fa-fire"></i>
+                Urgent Selling
+            </h2>
+            <div class="layout-switcher">
+                <button class="layout-btn active" title="Grid Layout">
+                    <i class="fas fa-th-large fa-lg"></i>
+                </button>
+                <button class="layout-btn" title="List Layout">
+                    <i class="fas fa-list fa-lg"></i>
+                </button>
+            </div>
+        </div>
+        <div class="vehicle-grid">
+            {% if urgent_vehicles %}
+                {% for vehicle in urgent_vehicles %}
+                {% include 'ads/includes/vehicle_card.html' with vehicle=vehicle %}
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Contact Section -->
+        <div class="contact-section">
+            <h2 class="section-title">Contact Wahanayak.lk</h2>
+            <a href="https://wa.me/94740677216" class="whatsapp-btn">
+                <i class="fab fa-whatsapp"></i>
+                WhatsApp
             </a>
-            {% endfor %}
-        {% endif %}
-    </div>
-
-    <!-- Contact Section -->
-    <div class="contact-section">
-        <h2 class="section-title">Contact Wahanayak.lk</h2>
-        <a href="https://wa.me/94740677216" class="whatsapp-btn">
-            <i class="fab fa-whatsapp"></i>
-            WhatsApp
-        </a>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -473,30 +936,41 @@
         const vehicleTypes = document.getElementById('vehicleTypes');
         const scrollLeft = document.getElementById('scrollLeft');
         const scrollRight = document.getElementById('scrollRight');
-        const itemWidth = vehicleTypes.querySelector('.vehicle-type').offsetWidth;
-        const gap = 16; // 1rem gap
-        const scrollAmount = (itemWidth + gap) * 4; // Scroll 4 items at a time
+        
+        function getScrollAmount() {
+            const itemWidth = vehicleTypes.querySelector('.vehicle-type').offsetWidth;
+            const computedStyle = window.getComputedStyle(vehicleTypes);
+            const gap = parseInt(computedStyle.columnGap || computedStyle.gap || 16);
+            // On mobile (< 768px) scroll 3 items, on tablet (< 1024px) scroll 3 items, otherwise scroll 4 items
+            const itemsToScroll = window.innerWidth < 768 ? 3 : (window.innerWidth < 1024 ? 3 : 4);
+            return (itemWidth + gap) * itemsToScroll;
+        }
 
         function updateScrollButtons() {
             scrollLeft.disabled = vehicleTypes.scrollLeft <= 0;
             scrollRight.disabled = vehicleTypes.scrollLeft >= vehicleTypes.scrollWidth - vehicleTypes.clientWidth;
         }
 
-        scrollLeft.addEventListener('click', () => {
-            vehicleTypes.scrollBy({
-                left: -scrollAmount,
-                behavior: 'smooth'
-            });
-        });
+        function scrollLeftBy() {
+            const amount = getScrollAmount();
+            const newLeft = Math.max(vehicleTypes.scrollLeft - amount, 0);
+            vehicleTypes.scrollTo({ left: newLeft, behavior: 'smooth' });
+            updateScrollButtons();
+        }
 
-        scrollRight.addEventListener('click', () => {
-            vehicleTypes.scrollBy({
-                left: scrollAmount,
-                behavior: 'smooth'
-            });
-        });
+        function scrollRightBy() {
+            const amount = getScrollAmount();
+            const maxLeft = vehicleTypes.scrollWidth - vehicleTypes.clientWidth;
+            const newLeft = Math.min(vehicleTypes.scrollLeft + amount, maxLeft);
+            vehicleTypes.scrollTo({ left: newLeft, behavior: 'smooth' });
+            updateScrollButtons();
+        }
+
+        scrollLeft.addEventListener('click', scrollLeftBy);
+        scrollRight.addEventListener('click', scrollRightBy);
 
         vehicleTypes.addEventListener('scroll', updateScrollButtons);
+        window.addEventListener('resize', updateScrollButtons);
         updateScrollButtons();
     });
 
@@ -617,6 +1091,55 @@
         applyMarquee();
         window.addEventListener('resize', applyMarquee);
         window.addEventListener('load', applyMarquee);
+    });
+
+    // Toggle favorite functionality
+    function toggleFavorite(button) {
+        const vehicleId = button.dataset.vehicleId;
+        
+        fetch(`/ads/toggle-favorite/${vehicleId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                button.classList.toggle('active');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // Auto-scroll long vehicle type names on hover
+    document.addEventListener('DOMContentLoaded', function() {
+        const vehicleTypeCards = document.querySelectorAll('.vehicle-type');
+        vehicleTypeCards.forEach(card => {
+            const textDiv = card.querySelector('div');
+            const span = textDiv?.querySelector('span');
+            if (!span || !textDiv) return;
+
+            card.addEventListener('mouseenter', () => {
+                // Calculate if text overflows
+                const textWidth = span.scrollWidth;
+                const containerWidth = textDiv.clientWidth;
+                const distance = textWidth - containerWidth;
+                
+                if (distance > 0) {
+                    span.style.setProperty('--scroll-distance', distance + 'px');
+                    span.classList.add('scrolling');
+                }
+            });
+
+            card.addEventListener('mouseleave', () => {
+                span.classList.remove('scrolling');
+                span.style.removeProperty('--scroll-distance');
+            });
+        });
     });
 </script>
 {% endblock %}

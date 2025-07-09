@@ -17,10 +17,7 @@ def home_view(request):
     })
 
 def ad_list(request):
-    vehicles = Vehicle.objects.filter(status='approved').order_by('-created_at')
-    return render(request, 'ads/ad_list.html', {
-        'vehicle_list': vehicles
-    })
+    return redirect('home')
 
 def search_view(request):
     # Get all search parameters from the request
@@ -100,7 +97,7 @@ def ad_detail(request, pk):
             'vehicle': vehicle
         })
     messages.error(request, 'This ad is not available.')
-    return redirect('ads:list')
+    return redirect('home')
 
 @login_required
 def create_ad(request):
