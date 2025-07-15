@@ -30,8 +30,13 @@ SECRET_KEY = 'django-insecure-p2in6^!2bqm3jy4!&8we93$pc@*k8r9$4-9(#)7dh#z4)h+2na
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['wahanayak.lk', '46.183.25.196', 'localhost', '127.0.0.1', '192.168.8.118']
+ALLOWED_HOSTS = ['www.wahanayak.lk', 'wahanayak.lk', '46.183.25.196', 'localhost', '127.0.0.1', '192.168.8.118']
 
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://wahanayak.lk',
+    'https://www.wahanayak.lk',
+]
 
 # Application definition
 
