@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import CustomUserCreationForm, UserProfileForm, UserNameForm, ShopForm
+from .forms import CustomUserCreationForm, UserProfileForm, UserNameForm, ShopForm, PasswordResetRequestForm, OTPVerificationForm, NewPasswordForm
 from ads.models import Vehicle, Favorite
 from django.contrib.auth.models import User
 from django.db.models import Count
@@ -12,6 +12,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.db.models import Q
 from django.urls import reverse
+from .utils import send_welcome_email, send_admin_notification, send_otp_email
 
 # Create your views here.
 
@@ -19,8 +20,23 @@ def register(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Account created successfully!')
+            user = form.save()
+            
+            # Send welcome email to the new user
+            try:
+                send_welcome_email(user)
+                messages.success(request, 'Account created successfully! Welcome email has been sent.')
+            except Exception as e:
+                # If email fails, still show success message but log the error
+                print(f"Failed to send welcome email: {str(e)}")
+                messages.success(request, 'Account created successfully!')
+            
+            # Send admin notification (optional)
+            try:
+                send_admin_notification(user)
+            except Exception as e:
+                print(f"Failed to send admin notification: {str(e)}")
+            
             return redirect('login')
     else:
         form = CustomUserCreationForm()
@@ -126,6 +142,7 @@ def admin_dashboard(request):
 
     # Add section-specific data
     if section == 'registered':
+        from django.core.paginator import Paginator
         users_query = User.objects.filter(is_superuser=False).select_related('userprofile')
         
         # Apply search if query exists
@@ -143,20 +160,20 @@ def admin_dashboard(request):
         
         users_query = users_query.order_by('-date_joined')
         
-        # Get all users if searching, otherwise get only recent 5
-        if search_query:
-            recent_users = users_query
-        else:
-            recent_users = users_query[:5]
-            
+        # Pagination for registered users
+        paginator = Paginator(users_query, 40)  # Show 5 users per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
         context['recent_users'] = [
             {
                 'user': u,
                 'profile': u.userprofile if hasattr(u, 'userprofile') else None,
                 'shop': getattr(u, 'shop', None) if hasattr(u, 'userprofile') and u.userprofile and u.userprofile.is_premium else None
-            } for u in recent_users
+            } for u in page_obj
         ]
+        context['recent_users_page'] = page_obj
     elif section == 'pending':
+        from django.core.paginator import Paginator
         # Get pending vehicles with related user and image data
         pending_query = Vehicle.objects.filter(
             status='pending'
@@ -166,7 +183,6 @@ def admin_dashboard(request):
         ).prefetch_related(
             'images'
         )
-        
         # Apply search if query exists
         if search_query:
             pending_query = pending_query.filter(
@@ -183,15 +199,41 @@ def admin_dashboard(request):
                 Q(phone_number__icontains=search_query) |
                 Q(whatsapp_number__icontains=search_query)
             ).distinct()
-            
-        context['pending_vehicles'] = pending_query.order_by('-created_at')
+        pending_query = pending_query.order_by('-created_at')
+        paginator = Paginator(pending_query, 40)  # Show 40 ads per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['pending_vehicles'] = page_obj
+        context['pending_vehicles_page'] = page_obj
     elif section == 'admgmt':
-        # Get all vehicles with their status
-        context['all_vehicles'] = Vehicle.objects.all().select_related(
+        from django.core.paginator import Paginator
+        all_vehicles_query = Vehicle.objects.all().select_related(
             'user'
         ).prefetch_related(
             'images'
-        ).order_by('-created_at')
+        )
+        # Apply search if query exists
+        if search_query:
+            all_vehicles_query = all_vehicles_query.filter(
+                Q(ad_id__icontains=search_query) |
+                Q(make__icontains=search_query) |
+                Q(model__icontains=search_query) |
+                Q(location__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(vehicle_type__icontains=search_query) |
+                Q(user__username__icontains=search_query) |
+                Q(user__first_name__icontains=search_query) |
+                Q(user__last_name__icontains=search_query) |
+                Q(user__userprofile__unique_id__icontains=search_query) |
+                Q(phone_number__icontains=search_query) |
+                Q(whatsapp_number__icontains=search_query)
+            ).distinct()
+        all_vehicles_query = all_vehicles_query.order_by('-created_at')
+        paginator = Paginator(all_vehicles_query, 40)  # Show 40 ads per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['all_vehicles'] = page_obj
+        context['all_vehicles_page'] = page_obj
     elif section == 'badge':
         # Badge users section data
         from django.core.paginator import Paginator
@@ -331,10 +373,25 @@ def update_badge(request, user_id):
 @login_required
 @user_passes_test(is_admin)
 def toggle_urgent(request, vehicle_id):
-    """Toggle the urgent status for a vehicle"""
+    """Toggle the urgent status for a vehicle. When enabling urgent, also ensure the ad is approved so it appears on the homepage urgent section."""
     if request.method == 'POST':
         vehicle = get_object_or_404(Vehicle, id=vehicle_id)
-        vehicle.is_urgent = not vehicle.is_urgent
+
+        try:
+            data = json.loads(request.body or '{}')
+            # Determine desired urgent status; if not provided, flip current
+            desired_urgent = data.get('is_urgent')
+            if desired_urgent is None:
+                desired_urgent = not vehicle.is_urgent
+        except json.JSONDecodeError:
+            desired_urgent = not vehicle.is_urgent
+
+        vehicle.is_urgent = bool(desired_urgent)
+
+        # Ensure the vehicle is approved when marking as urgent so it shows on homepage
+        if vehicle.is_urgent and vehicle.status != 'approved':
+            vehicle.status = 'approved'
+
         vehicle.save()
         return JsonResponse({'status': 'success', 'is_urgent': vehicle.is_urgent})
     return JsonResponse({'status': 'error'}, status=400)
@@ -364,3 +421,91 @@ def shop_profile(request, user_id):
     }
     
     return render(request, 'users/shop_profile.html', context)
+
+# Password Reset Views
+def password_reset_request(request):
+    """Step 1: User enters email to request password reset"""
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                user = User.objects.get(email=email)
+                profile = user.userprofile
+                
+                # Generate OTP
+                otp = profile.generate_otp()
+                
+                # Send OTP email
+                if send_otp_email(user, otp):
+                    messages.success(request, f'Password reset OTP has been sent to {email}. Please check your email.')
+                    return redirect('users:otp_verification')
+                else:
+                    messages.error(request, 'Failed to send OTP. Please try again.')
+            except User.DoesNotExist:
+                # Don't reveal if email exists or not for security
+                messages.success(request, 'If an account with this email exists, a password reset OTP has been sent.')
+                return redirect('users:otp_verification')
+    else:
+        form = PasswordResetRequestForm()
+    
+    return render(request, 'users/password_reset_request.html', {'form': form})
+
+def otp_verification(request):
+    """Step 2: User enters OTP for verification"""
+    if request.method == 'POST':
+        form = OTPVerificationForm(request.POST)
+        if form.is_valid():
+            otp = form.cleaned_data['otp']
+            
+            # Find user with this OTP
+            try:
+                profile = UserProfile.objects.get(reset_otp=otp)
+                if profile.verify_otp(otp):
+                    # Store user_id in session for next step
+                    request.session['reset_user_id'] = profile.user.id
+                    messages.success(request, 'OTP verified successfully. Please enter your new password.')
+                    return redirect('users:new_password')
+                else:
+                    messages.error(request, 'Invalid or expired OTP. Please try again.')
+            except UserProfile.DoesNotExist:
+                messages.error(request, 'Invalid OTP. Please try again.')
+    else:
+        form = OTPVerificationForm()
+    
+    return render(request, 'users/otp_verification.html', {'form': form})
+
+def new_password(request):
+    """Step 3: User sets new password"""
+    # Check if user_id is in session (from previous step)
+    user_id = request.session.get('reset_user_id')
+    if not user_id:
+        messages.error(request, 'Please request a password reset first.')
+        return redirect('users:password_reset_request')
+    
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'Invalid user. Please request a password reset again.')
+        return redirect('users:password_reset_request')
+    
+    if request.method == 'POST':
+        form = NewPasswordForm(request.POST)
+        if form.is_valid():
+            # Set new password
+            user.set_password(form.cleaned_data['password1'])
+            user.save()
+            
+            # Clear OTP
+            user.userprofile.clear_otp()
+            
+            # Clear session
+            if 'reset_user_id' in request.session:
+                del request.session['reset_user_id']
+            
+            messages.success(request, 'Password has been reset successfully. You can now login with your new password.')
+            return redirect('login')
+    else:
+        form = NewPasswordForm()
+    
+    return render(request, 'users/new_password.html', {'form': form})

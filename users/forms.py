@@ -162,4 +162,47 @@ class ShopForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Enter YouTube channel link'
             })
-        } 
+        }
+
+# Password Reset Forms
+class PasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(
+        max_length=254,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter your registered email address'
+        })
+    )
+
+class OTPVerificationForm(forms.Form):
+    otp = forms.CharField(
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter 6-digit OTP',
+            'maxlength': '6',
+            'pattern': '[0-9]{6}'
+        })
+    )
+
+class NewPasswordForm(forms.Form):
+    password1 = forms.CharField(
+        label='New Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+    )
+    password2 = forms.CharField(
+        label='Confirm New Password',
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password1 = cleaned_data.get('password1')
+        password2 = cleaned_data.get('password2')
+        
+        if password1 and password2:
+            if password1 != password2:
+                raise forms.ValidationError("Passwords don't match")
+        
+        return cleaned_data 

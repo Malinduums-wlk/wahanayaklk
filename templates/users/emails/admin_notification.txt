@@ -1,0 +1,11 @@
+New User Registration: {{ user.username }}
+
+A new user has registered on Wahanayak
+
+User Details:
+- Username: {{ user.username }}
+- Email: {{ user.email }}
+- Full Name: {{ user.first_name }} {{ user.last_name }}
+- Registration Date: {{ user.date_joined|date:"F j, Y, g:i a" }}
+
+You can view and manage this user from the admin dashboard. 

@@ -211,11 +211,10 @@
 }
 
 .vehicle-card .title-container {
-    flex: 1;
-    max-width: 70%;
-    background-color: #D3D7EE;
-    padding: 0.5rem;
-    border-radius: 6px;
+    flex: 0 0 50%;
+    width: 50%;
+    max-width: 50%;
+    overflow: hidden;
 }
 
 .vehicle-card .vehicle-title {
@@ -512,6 +511,10 @@
     }
     .vehicle-grid.list-layout .vehicle-card .listing-date {
         font-size: 0.5rem !important;
+    }
+    .vehicle-card .favorite-btn {
+        opacity: 1 !important;
+        display: flex !important;
     }
 }
 

@@ -250,7 +250,7 @@
             </div>
         </div>
 
-        <div class="listings-grid" id="listings-container">
+        <div class="vehicle-grid" id="listings-container">
             {% for vehicle in vehicles %}
                 {% include "ads/includes/vehicle_card.html" with vehicle=vehicle %}
             {% empty %}
@@ -269,13 +269,11 @@ function toggleLayout(layout) {
     const listBtn = document.querySelector('.list-view');
 
     if (layout === 'grid') {
-        container.classList.remove('listings-list');
-        container.classList.add('listings-grid');
+        container.classList.remove('list-layout');
         gridBtn.classList.add('active');
         listBtn.classList.remove('active');
     } else {
-        container.classList.remove('listings-grid');
-        container.classList.add('listings-list');
+        container.classList.add('list-layout');
         listBtn.classList.add('active');
         gridBtn.classList.remove('active');
     }

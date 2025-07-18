@@ -146,9 +146,17 @@
     {% csrf_token %}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Badge Users</h1>
-        <div class="d-flex gap-2">
-            <input type="text" class="form-control" placeholder="Search users..." id="searchInput">
-        </div>
+        <form class="d-flex" style="max-width: 400px;" onsubmit="return false;">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search users..." id="searchInput">
+                <button type="button" class="btn btn-primary" onclick="filterBadgeUsers()">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="clearBadgeSearch" onclick="clearBadgeUserSearch()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </form>
     </div>
 
     <div class="table-responsive">
@@ -313,5 +321,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function filterBadgeUsers() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput.value.toLowerCase();
+    document.querySelectorAll('.badge-table tbody tr').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+}
+function clearBadgeUserSearch() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = '';
+    filterBadgeUsers();
+    searchInput.focus();
+}
+document.getElementById('searchInput').addEventListener('input', filterBadgeUsers);
 </script>
 {% endblock %} 

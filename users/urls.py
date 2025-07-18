@@ -18,4 +18,9 @@ urlpatterns = [
     path('admin/toggle-premium/<int:user_id>/', views.toggle_premium, name='toggle_premium'),
     path('admin/remove-user/<int:user_id>/', views.remove_user, name='remove_user'),
     path('admin/toggle-urgent/<int:vehicle_id>/', views.toggle_urgent, name='toggle_urgent'),
+    
+    # Password Reset URLs
+    path('password-reset/', views.password_reset_request, name='password_reset_request'),
+    path('otp-verification/', views.otp_verification, name='otp_verification'),
+    path('new-password/', views.new_password, name='new_password'),
 ] 

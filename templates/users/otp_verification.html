@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}OTP Verification - Wahanayak{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .auth-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .auth-card .card-header {
+        background: #3f51b5;
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        border-bottom: none;
+    }
+
+    .auth-card .card-header h2 {
+        margin: 0;
+        font-size: 1.75rem;
+        font-weight: 600;
+    }
+
+    .auth-card .card-body {
+        padding: 2rem;
+    }
+
+    .auth-card .form-control {
+        padding: 0.75rem 1rem;
+        height: auto;
+        border-radius: 0.5rem;
+        text-align: center;
+        font-size: 1.2rem;
+        letter-spacing: 0.5rem;
+        font-weight: bold;
+    }
+
+    .auth-card .btn-primary {
+        padding: 0.75rem;
+        font-weight: 500;
+        background-color: #3f51b5;
+        border: none;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .auth-card .btn-primary:hover {
+        background-color: #303f9f;
+    }
+
+    .auth-card .border-top {
+        border-color: #eee !important;
+    }
+
+    .info-box {
+        background-color: #e8f5e8;
+        border: 1px solid #4caf50;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .info-box h5 {
+        color: #2e7d32;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-box p {
+        margin-bottom: 0;
+        color: #424242;
+    }
+
+    .otp-input {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        letter-spacing: 0.5rem;
+    }
+    .alert {
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+        border-radius: 0.5rem;
+    }
+    .alert-danger {
+        color: #842029;
+        background-color: #f8d7da;
+        border-color: #f5c2c7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="card-header">
+            <h2>🔢 OTP Verification</h2>
+        </div>
+        <div class="card-body">
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                        <div class="alert alert-danger">Entered otp is incorrect. Try again.</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            <div class="info-box">
+                <h5>📱 Enter Your OTP</h5>
+                <p>We've sent a 6-digit code to your email. Please enter it below to verify your identity.</p>
+            </div>
+
+            <form method="POST" id="otpForm">
+                {% csrf_token %}
+                <div class="otp-boxes" style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem;">
+                    {% for i in "123456" %}
+                    <input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]*" class="otp-input-box" id="otp{{ forloop.counter }}" autocomplete="one-time-code" style="width: 2.5rem; height: 2.5rem; text-align: center; font-size: 1.5rem; border: 1px solid #ccc; border-radius: 0.5rem;" />
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="otp" id="otpHidden">
+                <button class="btn btn-primary" type="submit">Verify OTP</button>
+            </form>
+
+            <div class="border-top pt-3 mt-3 text-center">
+                <small class="text-muted">
+                    Didn't receive the code? <a class="ms-2" href="{% url 'users:password_reset_request' %}">Request Again</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const boxes = Array.from(document.querySelectorAll('.otp-input-box'));
+    const hidden = document.getElementById('otpHidden');
+    // Focus first box on load
+    boxes[0].focus();
+
+    // Handle input
+    boxes.forEach((box, idx) => {
+        box.addEventListener('input', function(e) {
+            if (this.value.length > 1) this.value = this.value.slice(0, 1);
+            if (this.value && idx < boxes.length - 1) {
+                boxes[idx + 1].focus();
+            }
+            updateHidden();
+        });
+        box.addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace' && !this.value && idx > 0) {
+                boxes[idx - 1].focus();
+            }
+        });
+        box.addEventListener('paste', function(e) {
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            if (/^[0-9]{6}$/.test(paste)) {
+                for (let i = 0; i < 6; i++) {
+                    boxes[i].value = paste[i];
+                }
+                updateHidden();
+                boxes[5].focus();
+                e.preventDefault();
+            }
+        });
+    });
+    function updateHidden() {
+        hidden.value = boxes.map(b => b.value).join('');
+    }
+    // Prevent form submit if not 6 digits
+    document.getElementById('otpForm').addEventListener('submit', function(e) {
+        updateHidden();
+        if (hidden.value.length !== 6 || !/^[0-9]{6}$/.test(hidden.value)) {
+            e.preventDefault();
+            alert('Please enter the 6-digit OTP.');
+        }
+    });
+});
+</script>
+{% endblock %} 

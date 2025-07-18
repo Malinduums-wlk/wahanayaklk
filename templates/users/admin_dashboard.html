@@ -14,12 +14,13 @@
     }
     .stat-card {
         background: white;
-        padding: 1.5rem;
+        padding: 1rem; /* reduced from 1.5rem */
         border-radius: 0.5rem;
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         text-align: center;
         transition: all 0.2s;
         cursor: pointer;
+        font-size: 0.95rem; /* reduced from default */
     }
     .stat-card:hover {
         transform: translateY(-2px);
@@ -74,18 +75,18 @@
 
     .stat-card h3 {
         color: #666;
-        font-size: 0.875rem;
+        font-size: 1rem; /* reduced from 1.25rem or 0.875rem */
         margin-bottom: 0.5rem;
     }
 
     .stat-number {
-        font-size: 2rem;
+        font-size: 1.3rem; /* reduced from 2rem */
         font-weight: bold;
         color: #3f51b5;
     }
 
     .section-title {
-        font-size: 1.25rem;
+        font-size: 1.1rem; /* reduced from 1.25rem */
         font-weight: 600;
         margin: 2rem 0 1rem;
         color: #333;
@@ -98,6 +99,11 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         overflow: hidden;
         margin-bottom: 2rem;
+    }
+
+    .data-table th, .data-table td {
+        font-size: 0.95rem; /* reduced from default */
+        padding: 0.7rem; /* reduced from 1rem */
     }
 
     .data-table th {
@@ -144,9 +150,9 @@
         font-size: 0.875rem;
     }
 
-    .btn-sm {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.875rem;
+    .btn, .btn-sm {
+        font-size: 0.9rem; /* reduced from 0.875rem */
+        padding: 0.35rem 0.7rem; /* slightly reduced */
     }
 
     .gap-2 {
@@ -164,6 +170,7 @@
         background: #f8f9fa;
         border-radius: 0.5rem;
         margin: 1rem 0;
+        font-size: 1rem; /* reduced from default */
     }
 
     .vehicle-info {
@@ -175,11 +182,13 @@
     .vehicle-title {
         font-weight: 600;
         color: #333;
+        font-size: 0.95rem;
     }
 
     .vehicle-price {
         color: #3f51b5;
         font-weight: 600;
+        font-size: 0.95rem;
     }
 
     .vehicle-meta {
@@ -407,7 +416,7 @@
     }
 
     .contact-number {
-        font-weight: 600;
+        font-weight: normal;
     }
 
     .whatsapp-number {
@@ -447,10 +456,6 @@
 {% block content %}
 <div class="container admin-dashboard-container py-4">
     {% csrf_token %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Admin Dashboard</h1>
-    </div>
-
     <div class="sections-grid">
         <div class="stat-card registered {% if section == 'registered' %}active{% endif %}" onclick="window.location.href='{% url 'users:admin_dashboard' %}?section=registered'">
             <h3 class="d-flex align-items-center justify-content-center">Registered Users <span class="badge bg-primary ms-2">{{ total_users }}</span></h3>
@@ -522,7 +527,9 @@
                                 <div class="contact-number">{{ entry.profile.contact_phone }}</div>
                                 {% endif %}
                                 {% if entry.profile.whatsapp_number %}
-                                <div class="whatsapp-number"><i class="fab fa-whatsapp"></i> {{ entry.profile.whatsapp_number }}</div>
+                                <div class="whatsapp-number">
+                                    <i class="fab fa-whatsapp"></i> {{ entry.profile.whatsapp_number }}
+                                </div>
                                 {% endif %}
                             </div>
                         </td>
@@ -552,6 +559,21 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        <div class="pagination">
+            {% if recent_users_page.has_previous %}
+                <a href="?section=registered{% if search_query %}&search={{ search_query }}{% endif %}&page={{ recent_users_page.previous_page_number }}">&laquo; Previous</a>
+            {% endif %}
+            {% for num in recent_users_page.paginator.page_range %}
+                {% if num == recent_users_page.number %}
+                    <a href="?section=registered{% if search_query %}&search={{ search_query }}{% endif %}&page={{ num }}" class="active">{{ num }}</a>
+                {% else %}
+                    <a href="?section=registered{% if search_query %}&search={{ search_query }}{% endif %}&page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if recent_users_page.has_next %}
+                <a href="?section=registered{% if search_query %}&search={{ search_query }}{% endif %}&page={{ recent_users_page.next_page_number }}">Next &raquo;</a>
+            {% endif %}
         </div>
         {% else %}
         <div class="empty-state">
@@ -590,7 +612,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for vehicle in pending_vehicles %}
+                    {% for vehicle in pending_vehicles_page %}
                     <tr>
                         <td><span style="font-family:monospace;">#{{ vehicle.ad_id }}</span></td>
                         <td>
@@ -652,6 +674,21 @@
                 </tbody>
             </table>
         </div>
+        <div class="pagination">
+            {% if pending_vehicles_page.has_previous %}
+                <a href="?section=pending{% if search_query %}&search={{ search_query }}{% endif %}&page={{ pending_vehicles_page.previous_page_number }}">&laquo; Previous</a>
+            {% endif %}
+            {% for num in pending_vehicles_page.paginator.page_range %}
+                {% if num == pending_vehicles_page.number %}
+                    <a href="?section=pending{% if search_query %}&search={{ search_query }}{% endif %}&page={{ num }}" class="active">{{ num }}</a>
+                {% else %}
+                    <a href="?section=pending{% if search_query %}&search={{ search_query }}{% endif %}&page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if pending_vehicles_page.has_next %}
+                <a href="?section=pending{% if search_query %}&search={{ search_query }}{% endif %}&page={{ pending_vehicles_page.next_page_number }}">Next &raquo;</a>
+            {% endif %}
+        </div>
         {% else %}
         <div class="empty-state">
             <p class="mb-0">No pending ads to review</p>
@@ -659,15 +696,23 @@
         {% endif %}
     {% elif section == 'admgmt' %}
         <h2 class="section-title">Ad Management <span class="badge bg-warning">{{ approved_ads }}</span></h2>
-        {% if all_vehicles %}
         <div class="mb-4">
-            <div class="input-group">
-                <span class="input-group-text bg-white border-end-0">
-                    <i class="fas fa-search text-muted"></i>
-                </span>
-                <input type="text" id="adSearch" class="form-control border-start-0" placeholder="Search ads..." style="max-width: 300px;">
-            </div>
+            <form method="get" action="" style="max-width: 400px;">
+                <input type="hidden" name="section" value="admgmt">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    {% if search_query %}
+                    <a href="?section=admgmt" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
         </div>
+        {% if all_vehicles %}
         <div class="data-table">
             <table class="w-100">
                 <thead>
@@ -685,7 +730,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for vehicle in all_vehicles %}
+                    {% for vehicle in all_vehicles_page %}
                     <tr>
                         <td><span style="font-family:monospace;">#{{ vehicle.ad_id }}</span></td>
                         <td>
@@ -753,23 +798,20 @@
                 </tbody>
             </table>
         </div>
-
-        <div class="d-flex justify-content-between align-items-center mt-4">
-            <div class="text-muted">
-                Showing: <span id="showing">14</span> of <span id="total">20</span>
-            </div>
-            <nav aria-label="Page navigation">
-                <ul class="pagination mb-0">
-                    <li class="page-item"><a class="page-link" href="#"><i class="fas fa-chevron-left"></i></a></li>
-                    <li class="page-item"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item active"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item"><a class="page-link" href="#">4</a></li>
-                    <li class="page-item"><a class="page-link" href="#">5</a></li>
-                    <li class="page-item"><a class="page-link" href="#">6</a></li>
-                    <li class="page-item"><a class="page-link" href="#"><i class="fas fa-chevron-right"></i></a></li>
-                </ul>
-            </nav>
+        <div class="pagination">
+            {% if all_vehicles_page.has_previous %}
+                <a href="?section=admgmt{% if search_query %}&search={{ search_query }}{% endif %}&page={{ all_vehicles_page.previous_page_number }}">&laquo; Previous</a>
+            {% endif %}
+            {% for num in all_vehicles_page.paginator.page_range %}
+                {% if num == all_vehicles_page.number %}
+                    <a href="?section=admgmt{% if search_query %}&search={{ search_query }}{% endif %}&page={{ num }}" class="active">{{ num }}</a>
+                {% else %}
+                    <a href="?section=admgmt{% if search_query %}&search={{ search_query }}{% endif %}&page={{ num }}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if all_vehicles_page.has_next %}
+                <a href="?section=admgmt{% if search_query %}&search={{ search_query }}{% endif %}&page={{ all_vehicles_page.next_page_number }}">Next &raquo;</a>
+            {% endif %}
         </div>
 
         <script>
@@ -832,9 +874,21 @@
         {% endif %}
     {% elif section == 'badge' %}
         <h2 class="section-title">Badge Users <span class="badge bg-danger">{{ profiles.paginator.count }}</span></h2>
-
-        <div class="d-flex justify-content-end mb-3">
-            <input type="text" class="form-control" placeholder="Search users..." id="badgeUserSearch" style="max-width: 250px;">
+        <div class="mb-4">
+            <form method="get" action="" style="max-width: 400px;">
+                <input type="hidden" name="section" value="badge">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" value="{{ search_query }}" placeholder="Search users...">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    {% if search_query %}
+                    <a href="?section=badge" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
         </div>
 
         {% if profiles %}

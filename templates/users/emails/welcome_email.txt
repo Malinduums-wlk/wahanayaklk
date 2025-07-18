@@ -1,0 +1,29 @@
+Welcome to Wahanayak! 🚗
+
+Hello {{ first_name }}!
+
+Welcome to Wahanayak! We're excited to have you join our community of vehicle enthusiasts and sellers.
+
+🎉 Your account has been successfully created!
+Username: {{ user.username }}
+Email: {{ user.email }}
+
+What you can do now:
+- 📝 Create and manage your vehicle advertisements
+- 🔍 Browse and search for vehicles
+- ❤️ Save your favorite listings
+- 💬 Contact sellers directly
+- 👤 Update your profile and preferences
+
+Getting Started Tips:
+1. Complete your profile: Add your contact information and profile picture
+2. Post your first ad: Create a detailed vehicle advertisement with photos
+3. Explore the platform: Browse existing listings to understand the market
+4. Stay updated: Check back regularly for new listings and updates
+
+Start exploring: {{ site_url }}
+
+If you have any questions or need assistance, feel free to contact our support team at hello@wahanayak.lk
+
+© 2024 Wahanayak. All rights reserved.
+This email was sent to {{ user.email }} because you registered on Wahanayak. 

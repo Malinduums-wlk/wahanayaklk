@@ -1,0 +1,24 @@
+Password Reset OTP - Wahanayak
+
+Hello {{ user.first_name|default:user.username }}!
+
+We received a request to reset your password for your Wahanayak account. If you didn't make this request, you can safely ignore this email.
+
+Your Password Reset Code: {{ otp }}
+
+This code will expire in {{ expiry_minutes }} minutes.
+
+⚠️ Security Notice:
+- Never share this code with anyone
+- Wahanayak will never ask for this code via phone or email
+- If you didn't request this reset, please ignore this email
+
+What to do next:
+1. Enter the code above on the password reset page
+2. Create a new strong password
+3. Sign in with your new password
+
+If you have any questions or need assistance, feel free to contact our support team at hello@wahanayak.lk
+
+© 2024 Wahanayak. All rights reserved.
+This email was sent to {{ user.email }} because you requested a password reset. 

@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
+from datetime import timedelta
 import random
 
 # Create your models here.
@@ -27,6 +29,10 @@ class UserProfile(models.Model):
     premium_badge_end_date = models.DateField(null=True, blank=True)
     has_trusted_badge = models.BooleanField(default=False)
     trusted_badge_end_date = models.DateField(null=True, blank=True)
+    
+    # Password reset OTP fields
+    reset_otp = models.CharField(max_length=6, null=True, blank=True)
+    reset_otp_expiry = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
         if not self.unique_id:
@@ -40,6 +46,32 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} Profile"
+    
+    def generate_otp(self):
+        """Generate a 6-digit OTP and set expiry (10 minutes)"""
+        self.reset_otp = str(random.randint(100000, 999999))
+        self.reset_otp_expiry = timezone.now() + timedelta(minutes=10)
+        self.save()
+        return self.reset_otp
+    
+    def verify_otp(self, otp):
+        """Verify if the provided OTP is correct and not expired"""
+        if not self.reset_otp or not self.reset_otp_expiry:
+            return False
+        
+        if timezone.now() > self.reset_otp_expiry:
+            return False
+        
+        if self.reset_otp == otp:
+            return True
+        
+        return False
+    
+    def clear_otp(self):
+        """Clear the OTP after successful use"""
+        self.reset_otp = None
+        self.reset_otp_expiry = None
+        self.save()
 
 class Shop(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
