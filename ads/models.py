@@ -47,6 +47,9 @@ class Vehicle(models.Model):
     model = models.CharField(max_length=100)
     condition = models.CharField(max_length=20, choices=CONDITION_CHOICES)
     is_urgent = models.BooleanField(default=False)
+    urgent_end_date = models.DateField(null=True, blank=True)
+    is_boosted = models.BooleanField(default=False)
+    boost_end_date = models.DateField(null=True, blank=True)
     
     # Contact Info
     phone_number = models.CharField(max_length=15)
@@ -106,6 +109,21 @@ class Vehicle(models.Model):
             self.slug = slug_candidate
         super().save(*args, **kwargs)
 
+    def delete(self, *args, **kwargs):
+        # Log the deletion for admin tracking
+        print(f"Deleting vehicle ad: {self.ad_id} ({self.year} {self.make} {self.model})")
+        
+        # Delete all related images first to ensure proper cleanup
+        for image in self.images.all():
+            if image.image:
+                try:
+                    image.image.delete(save=False)
+                except Exception as e:
+                    print(f"Error deleting image file: {e}")
+        
+        # Call the parent delete method
+        super().delete(*args, **kwargs)
+
     class Meta:
         ordering = ['-created_at']
 
@@ -152,4 +170,5 @@ class Favorite(models.Model):
         unique_together = ('user', 'vehicle')
 
     def __str__(self):
-        return f"{self.user.username}'s favorite: {self.vehicle.title}"
+        # Use the Vehicle.__str__ representation instead of non-existent title attribute
+        return f"{self.user.username}'s favorite: {self.vehicle}"

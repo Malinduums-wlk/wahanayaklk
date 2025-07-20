@@ -167,6 +167,26 @@ footer {
     margin-top: 30px;
 }
 
+/* Seller Link Styles */
+.seller-link {
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.seller-link:hover {
+    color: #2855a7 !important;
+    text-decoration: none !important;
+}
+
+.seller-link:hover i {
+    opacity: 1 !important;
+    transform: translateX(2px);
+}
+
+.seller-link i {
+    transition: all 0.2s ease;
+}
+
 /* Responsive Design */
 @media (min-width: 1025px) {
     .container,

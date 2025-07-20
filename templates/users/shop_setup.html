@@ -28,9 +28,7 @@
         flex-direction: column;
     }
 
-    .cover-upload:hover .cover-overlay {
-        opacity: 1;
-    }
+    /* Removed hover effect for cover overlay */
 
     .cover-overlay {
         position: absolute;
@@ -86,25 +84,90 @@
     }
     .remove-cover-btn {
         position: absolute;
-        top: 8px;
-        right: 8px;
-        background: rgba(0,0,0,0.6);
+        top: 10px;
+        right: 10px;
+        background: rgba(220, 53, 69, 0.9);
         color: #fff;
-        border: none;
+        border: 2px solid #fff;
         border-radius: 50%;
-        width: 32px;
-        height: 32px;
-        display: flex;
+        width: 40px;
+        height: 40px;
+        display: none;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.2s;
+        transition: all 0.2s;
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    .cover-upload:hover .remove-cover-btn,
-    .cover-upload.editing .remove-cover-btn {
+    .remove-cover-btn:hover {
+        background: rgba(220, 53, 69, 1);
+    }
+    .edit-mode .remove-cover-btn {
+        display: flex !important;
+        opacity: 0.9;
+    }
+    
+    /* Show recycle bin when hovering over cover in edit mode */
+    .edit-mode .cover-upload:hover .remove-cover-btn {
         opacity: 1;
     }
+    
+    /* Always show recycle bin in edit mode */
+    .edit-mode .remove-cover-btn {
+        opacity: 1 !important;
+    }
+    
+    /* Disable ALL hover effects on the shop setup page */
+    .card,
+    .card *,
+    .container,
+    .container *,
+    .form-section,
+    .form-section *,
+    .cover-upload,
+    .cover-upload * {
+        transition: none !important;
+    }
+    
+    .card:hover,
+    .card:hover *,
+    .container:hover,
+    .container:hover *,
+    .form-section:hover,
+    .form-section:hover *,
+    .cover-upload:hover,
+    .cover-upload:hover * {
+        transform: none !important;
+        box-shadow: none !important;
+        opacity: inherit !important;
+    }
+    
+    /* Disable any Bootstrap hover effects */
+    .btn:hover,
+    .btn:focus {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Disable Bootstrap shadow classes */
+    .shadow,
+    .shadow-sm,
+    .shadow-lg,
+    .shadow-none {
+        box-shadow: none !important;
+    }
+    
+    /* Remove drop shadow from shop setup section completely */
+    .card {
+        box-shadow: none !important;
+    }
+    
+    /* Fix divider line opacity to 20% and prevent hover changes */
+    hr {
+        opacity: 0.2 !important;
+    }
+    
     .form-fields {
         display: none;
     }
@@ -127,17 +190,159 @@
     .edit-mode .action-buttons {
         display: flex !important;
     }
+    
+    /* Hide any form validation messages or text that might appear */
+    .form-section .help-text,
+    .form-section .errorlist,
+    .form-section .invalid-feedback {
+        display: none !important;
+    }
+    
+    /* Hide any Django form errors that might appear */
+    .alert,
+    .alert-danger,
+    .alert-warning {
+        display: none !important;
+    }
+    
+    /* Hide Django messages on shop setup page */
+    .container .alert {
+        display: none !important;
+    }
+    
+    /* Hide Django file input default text */
+    .cover-upload input[type="file"] ~ * {
+        display: none !important;
+    }
+    
+    /* Hide Django's ClearableFileInput text and any sibling elements */
+    .cover-upload .clearable-file-input,
+    .cover-upload .clearable-file-input *,
+    .cover-upload input[type="file"] + *,
+    .cover-upload input[type="file"] + label,
+    .cover-upload input[type="file"] + span,
+    .cover-upload input[type="file"] + div,
+    .cover-upload input[type="file"] + p,
+    .cover-upload input[type="file"] + strong,
+    .cover-upload input[type="file"] + em,
+    .cover-upload input[type="file"] + b,
+    .cover-upload input[type="file"] + i,
+    .cover-upload input[type="file"] + u,
+    .cover-upload input[type="file"] + s,
+    .cover-upload input[type="file"] + code,
+    .cover-upload input[type="file"] + pre,
+    .cover-upload input[type="file"] + blockquote,
+    .cover-upload input[type="file"] + ul,
+    .cover-upload input[type="file"] + ol,
+    .cover-upload input[type="file"] + li,
+    .cover-upload input[type="file"] + dl,
+    .cover-upload input[type="file"] + dt,
+    .cover-upload input[type="file"] + dd,
+    .cover-upload input[type="file"] + table,
+    .cover-upload input[type="file"] + tr,
+    .cover-upload input[type="file"] + td,
+    .cover-upload input[type="file"] + th,
+    .cover-upload input[type="file"] + thead,
+    .cover-upload input[type="file"] + tbody,
+    .cover-upload input[type="file"] + tfoot,
+    .cover-upload input[type="file"] + caption,
+    .cover-upload input[type="file"] + colgroup,
+    .cover-upload input[type="file"] + col,
+    .cover-upload input[type="file"] + fieldset,
+    .cover-upload input[type="file"] + legend,
+    .cover-upload input[type="file"] + input,
+    .cover-upload input[type="file"] + button,
+    .cover-upload input[type="file"] + select,
+    .cover-upload input[type="file"] + textarea,
+    .cover-upload input[type="file"] + form,
+    .cover-upload input[type="file"] + iframe,
+    .cover-upload input[type="file"] + object,
+    .cover-upload input[type="file"] + embed,
+    .cover-upload input[type="file"] + param,
+    .cover-upload input[type="file"] + applet,
+    .cover-upload input[type="file"] + map,
+    .cover-upload input[type="file"] + area,
+    .cover-upload input[type="file"] + base,
+    .cover-upload input[type="file"] + link,
+    .cover-upload input[type="file"] + meta,
+    .cover-upload input[type="file"] + script,
+    .cover-upload input[type="file"] + style,
+    .cover-upload input[type="file"] + title,
+    .cover-upload input[type="file"] + head,
+    .cover-upload input[type="file"] + body,
+    .cover-upload input[type="file"] + html {
+        display: none !important;
+    }
+    .edit-mode .edit-mode-only { 
+        display: flex !important; 
+    }
+    .edit-mode-only { 
+        display: none !important; 
+    }
+    
+    /* Ensure upload content is hidden in read-only mode */
+    .upload-content.edit-mode-only {
+        display: none !important;
+    }
+    .edit-mode .upload-content.edit-mode-only {
+        display: flex !important;
+    }
+    /* Account sidebar styles */
+    .account-sidebar {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 1.5rem;
+        height: fit-content;
+    }
+
+    .account-sidebar h5 {
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+
+    .account-sidebar .btn {
+        margin-bottom: 0.5rem;
+        text-align: left;
+        justify-content: flex-start;
+        border: none;
+        background: transparent;
+        color: #666;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .account-sidebar .btn:hover {
+        background: #e9ecef;
+        color: #333;
+    }
+    
+    .account-sidebar .btn.active {
+        background: #4361ee;
+        color: white;
+    }
+
+    .account-sidebar .btn.active:hover {
+        background: #3451d1;
+        color: white;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5" style="max-width: 1100px;">
+<div class="container py-5" style="max-width: 1200px;">
     <div class="row">
         <div class="col-md-3 mb-4">
-            <h5 class="fw-bold mb-4">Account Settings</h5>
-            <div class="d-flex flex-column gap-2">
-                <a href="{% url 'users:profile' %}" class="btn btn-light">Profile</a>
-                <button class="btn btn-light" disabled>Shop</button>
+            <div class="account-sidebar">
+                <h5>Account Settings</h5>
+                <div class="d-flex flex-column">
+                    <a href="{% url 'users:profile' %}" class="btn">Profile</a>
+                    {% if profile.is_premium %}
+                    <a href="{% url 'users:shop_setup' %}" class="btn active">Shop</a>
+                    {% endif %}
+                    <a href="{% url 'users:my_ads' %}" class="btn">My Ads</a>
+                    <a href="{% url 'users:my_favorites' %}" class="btn">My Favorites</a>
+                </div>
             </div>
         </div>
         <div class="col-md-9">
@@ -155,25 +360,26 @@
                     <!-- Cover Photo -->
                     <div class="form-section">
                         <h5>Cover Page</h5>
-                        <label class="cover-upload" for="id_cover_photo">
+                        <div class="cover-upload" style="position: relative;">
+                            <label for="id_cover_photo" style="width: 100%; height: 100%; display: block; cursor: pointer;">
+                                {% if shop and shop.cover_photo %}
+                                    <img src="{{ shop.cover_photo.url }}" alt="Cover Photo" id="cover-preview">
+                                {% else %}
+                                    <div class="upload-content edit-mode-only" id="cover-placeholder">
+                                        <i class="fas fa-plus-circle mb-2" style="font-size: 3rem; color: #cbd5e1;"></i>
+                                        <p class="text-muted mb-0">Click to upload cover photo</p>
+                                    </div>
+                                    <img src="" alt="Cover Photo" id="cover-preview" style="display: none;">
+                                {% endif %}
+                                {{ form.cover_photo }}
+                                <input type="hidden" name="remove_cover" id="removeCoverInput" value="0">
+                            </label>
                             {% if shop and shop.cover_photo %}
-                                <img src="{{ shop.cover_photo.url }}" alt="Cover Photo" id="cover-preview">
-                            {% else %}
-                                <div class="upload-content" id="cover-placeholder">
-                                    <i class="fas fa-plus-circle mb-2" style="font-size: 3rem; color: #cbd5e1;"></i>
-                                    <p class="text-muted mb-0">Click to upload cover photo</p>
-                                </div>
-                                <img src="" alt="Cover Photo" id="cover-preview" style="display: none;">
-                            {% endif %}
-                            <div class="cover-overlay">
-                                <i class="fas fa-camera" style="font-size: 2rem; color: white;"></i>
-                            </div>
-                            {{ form.cover_photo }}
-                            <input type="hidden" name="remove_cover" id="removeCoverInput" value="0">
                             <button type="button" class="remove-cover-btn" id="removeCoverBtn" title="Remove cover photo">
-                                <i class="fas fa-trash"></i>
+                                <i class="fas fa-trash" style="font-size: 16px;"></i>
                             </button>
-                        </label>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <!-- Read-only display -->
@@ -356,20 +562,43 @@
     const removeCoverBtn = document.getElementById('removeCoverBtn');
     const removeCoverInput = document.getElementById('removeCoverInput');
 
-    removeCoverBtn.addEventListener('click', function() {
-        const fileInput = document.getElementById('id_cover_photo');
-        const preview = document.getElementById('cover-preview');
-        const placeholder = document.getElementById('cover-placeholder');
-        fileInput.value = '';
-        if (preview) {
-            preview.src = '';
-            preview.style.display = 'none';
-        }
-        if (placeholder) {
-            placeholder.style.display = 'flex';
-        }
-        removeCoverInput.value = '1';
-    });
+    if (removeCoverBtn) {
+        removeCoverBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Prevent any default action
+            e.stopPropagation(); // Stop event bubbling
+            
+            const fileInput = document.getElementById('id_cover_photo');
+            const preview = document.getElementById('cover-preview');
+            const placeholder = document.getElementById('cover-placeholder');
+            
+            // Clear the file input
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            
+            // Hide the preview image
+            if (preview) {
+                preview.src = '';
+                preview.style.display = 'none';
+            }
+            
+            // Show the placeholder
+            if (placeholder) {
+                placeholder.style.display = 'flex';
+            }
+            
+            // Set the remove flag
+            if (removeCoverInput) {
+                removeCoverInput.value = '1';
+            }
+            
+            // Hide the remove button
+            removeCoverBtn.style.display = 'none';
+            
+            // Prevent form submission
+            return false;
+        });
+    }
 
     // Handle edit mode
     const editShopBtn = document.getElementById('editShopBtn');
@@ -381,10 +610,15 @@
         shopForm.classList.toggle('edit-mode', enabled);
         editShopBtn.style.display = enabled ? 'none' : 'inline-flex';
         const coverLabel = document.querySelector('.cover-upload');
+        const removeBtn = document.getElementById('removeCoverBtn');
+        
         if (enabled) {
             coverLabel.classList.add('editing');
+            // Ensure recycle bin is visible in edit mode
+            // Hide recycle bin in read-only mode
         } else {
             coverLabel.classList.remove('editing');
+            // Hide recycle bin in read-only mode
         }
     }
 

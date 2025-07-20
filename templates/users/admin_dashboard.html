@@ -248,6 +248,7 @@
         transform: translateX(26px);
     }
 
+    /* Urgent Toggle Styles */
     .urgent-toggle-container {
         display: flex;
         align-items: center;
@@ -293,7 +294,7 @@
     }
     
     .urgent-checkbox:checked + .urgent-slider {
-        background-color: #5D7EFF;
+        background-color: #FF6B6B;
     }
     
     .urgent-checkbox:checked + .urgent-slider:before {
@@ -731,7 +732,7 @@
                 </thead>
                 <tbody>
                     {% for vehicle in all_vehicles_page %}
-                    <tr>
+                    <tr data-vehicle-id="{{ vehicle.id }}">
                         <td><span style="font-family:monospace;">#{{ vehicle.ad_id }}</span></td>
                         <td>
                             <span style="font-family:monospace;">{% if vehicle.user.userprofile %}{{ vehicle.user.userprofile.unique_id }}{% endif %}</span>
@@ -771,7 +772,7 @@
                             </div>
                         </td>
                         <td>
-                            <input type="date" class="form-control form-control-sm end-date-input" data-vehicle-id="{{ vehicle.id }}" value="{{ vehicle.urgent_end_date|date:'Y-m-d' }}" style="min-width: 120px;">
+                            <input type="date" class="form-control form-control-sm urgent-end-date-input" data-vehicle-id="{{ vehicle.id }}" value="{{ vehicle.urgent_end_date|date:'Y-m-d' }}" style="min-width: 120px;">
                         </td>
                         <td>
                             {% if vehicle.status == 'pending' %}
@@ -816,56 +817,386 @@
 
         <script>
             // Search functionality
-            document.getElementById('adSearch').addEventListener('input', function(e) {
+            const adSearchInput = document.getElementById('adSearch');
+            if (adSearchInput) {
+                adSearchInput.addEventListener('input', function(e) {
                 const searchText = e.target.value.toLowerCase();
                 const rows = document.querySelectorAll('tbody tr');
                 
                 rows.forEach(row => {
-                    const adText = row.querySelector('.vehicle-title').textContent.toLowerCase();
+                        const titleEl = row.querySelector('.vehicle-title');
+                        if (!titleEl) return; // safety check
+                        const adText = titleEl.textContent.toLowerCase();
                     row.style.display = adText.includes(searchText) ? '' : 'none';
                 });
             });
+            }
 
             // Delete ad function
             function deleteAd(id) {
-                if (confirm('Are you sure you want to delete this ad?')) {
-                    // Add your delete logic here
-                    console.log('Deleting ad:', id);
-                }
-            }
-
-            // Handle urgent toggle
-            document.querySelectorAll('.urgent-checkbox').forEach(function(checkbox) {
-                checkbox.addEventListener('change', function() {
-                    var vehicleId = this.dataset.vehicleId;
+                if (confirm('Are you sure you want to delete this ad? This action cannot be undone.')) {
                     var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                     
-                    fetch('/users/admin/toggle-urgent/' + vehicleId + '/', {
+                    console.log('Deleting ad:', id);
+                    
+                    // Find the delete button and disable it
+                    const deleteBtn = event.target.closest('button');
+                    if (deleteBtn) {
+                        deleteBtn.disabled = true;
+                        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+                    }
+                    
+                    // Make the AJAX request
+                    fetch('/users/admin/delete-ad/' + id + '/', {
                         method: 'POST',
                         headers: {
                             'X-CSRFToken': csrfToken,
                             'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            is_urgent: this.checked
-                        })
-                    })
-                    .then(function(response) { return response.json(); })
-                    .then(function(data) {
-                        if (data.status !== 'success') {
-                            // Revert the checkbox if the update failed
-                            this.checked = !this.checked;
-                            alert('Failed to update urgent status');
                         }
-                    }.bind(this))
+                    })
+                    .then(function(response) { 
+                        console.log('Response status:', response.status);
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok: ' + response.status);
+                        }
+                        return response.json(); 
+                    })
+                    .then(function(data) {
+                        console.log('Response data:', data);
+                        
+                        if (data.status === 'success') {
+                            console.log('Ad deleted successfully');
+                            
+                            // Show success message
+                            alert(data.message);
+                            
+                            // Remove the row from the table
+                            const row = document.querySelector(`tr[data-vehicle-id="${id}"]`);
+                            if (row) {
+                                row.style.backgroundColor = '#ffebee';
+                                row.style.transition = 'opacity 0.5s';
+                                setTimeout(function() {
+                                    row.style.opacity = '0';
+                                    setTimeout(function() {
+                                        row.remove();
+                                    }, 500);
+                                }, 1000);
+                            } else {
+                                // If row not found, reload the page
+                                window.location.reload();
+                            }
+                        } else {
+                            console.error('Failed to delete ad:', data);
+                            alert('Failed to delete ad: ' + (data.message || 'Unknown error'));
+                            
+                            // Re-enable the button if delete failed
+                            if (deleteBtn) {
+                                deleteBtn.disabled = false;
+                                deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                            }
+                        }
+                    })
                     .catch(function(error) {
                         console.error('Error:', error);
-                        // Revert the checkbox if there was an error
-                        this.checked = !this.checked;
-                        alert('Failed to update urgent status');
-                    }.bind(this));
+                        alert('Failed to delete ad: ' + error.message);
+                        
+                        // Re-enable the button if there was an error
+                        if (deleteBtn) {
+                            deleteBtn.disabled = false;
+                            deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                        }
+                    });
+                }
+            }
+
+            // Handle urgent toggle with backend functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.urgent-checkbox').forEach(function(checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        var vehicleId = this.dataset.vehicleId;
+                        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                        
+                        console.log('Toggling urgent for vehicle:', vehicleId, 'to:', this.checked);
+                        
+                        // Disable the checkbox during the request
+                        this.disabled = true;
+                        
+                        // Add visual feedback
+                        var slider = this.nextElementSibling;
+                        if (slider) {
+                            slider.style.opacity = '0.5';
+                        }
+                        
+                        // Make the AJAX request
+                        fetch('/users/admin/toggle-urgent/' + vehicleId + '/', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                is_urgent: this.checked
+                            })
+                        })
+                        .then(function(response) { 
+                            console.log('Response status:', response.status);
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.status);
+                            }
+                            return response.json(); 
+                        })
+                        .then(function(data) {
+                            console.log('Response data:', data);
+                            
+                            // Re-enable the checkbox
+                            this.disabled = false;
+                            if (slider) {
+                                slider.style.opacity = '1';
+                            }
+                            
+                            if (data.status === 'success') {
+                                console.log('Urgent status updated successfully');
+                                
+                                // Show success indicator
+                                if (slider) {
+                                    slider.style.backgroundColor = this.checked ? '#FF6B6B' : '#DCDDE2';
+                                    // Flash green briefly
+                                    slider.style.backgroundColor = '#28a745';
+                                    setTimeout(function() {
+                                        slider.style.backgroundColor = this.checked ? '#FF6B6B' : '#DCDDE2';
+                                    }.bind(this), 1000);
+                                }
+                                
+                                // Reload the page to reflect the change
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1000);
+                            } else {
+                                // Revert the checkbox if the update failed
+                                this.checked = !this.checked;
+                                console.error('Failed to update urgent status:', data);
+                                alert('Failed to update urgent status');
+                            }
+                        }.bind(this))
+                        .catch(function(error) {
+                            console.error('Error:', error);
+                            // Revert the checkbox if there was an error
+                            this.checked = !this.checked;
+                            this.disabled = false;
+                            if (slider) {
+                                slider.style.opacity = '1';
+                            }
+                            alert('Failed to update urgent status: ' + error.message);
+                        }.bind(this));
+                    });
+                });
+
+                // Handle boost toggle with backend functionality
+                document.querySelectorAll('.boost-checkbox').forEach(function(checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        var vehicleId = this.dataset.vehicleId;
+                        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                        
+                        console.log('Toggling boost for vehicle:', vehicleId, 'to:', this.checked);
+                        
+                        // Disable the checkbox during the request
+                        this.disabled = true;
+                        
+                        // Add visual feedback
+                        var slider = this.nextElementSibling;
+                        if (slider) {
+                            slider.style.opacity = '0.5';
+                        }
+                        
+                        // Make the AJAX request
+                        fetch('/users/admin/toggle-boost/' + vehicleId + '/', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                is_boosted: this.checked
+                            })
+                        })
+                        .then(function(response) { 
+                            console.log('Response status:', response.status);
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.status);
+                            }
+                            return response.json(); 
+                        })
+                        .then(function(data) {
+                            console.log('Response data:', data);
+                            
+                            // Re-enable the checkbox
+                            this.disabled = false;
+                            if (slider) {
+                                slider.style.opacity = '1';
+                            }
+                            
+                            if (data.status === 'success') {
+                                console.log('Boost status updated successfully');
+                                
+                                // Show success indicator
+                                if (slider) {
+                                    slider.style.backgroundColor = this.checked ? '#FFBB2A' : '#DCDDE2';
+                                    // Flash green briefly
+                                    slider.style.backgroundColor = '#28a745';
+                                    setTimeout(function() {
+                                        slider.style.backgroundColor = this.checked ? '#FFBB2A' : '#DCDDE2';
+                                    }.bind(this), 1000);
+                                }
+                                
+                                // Reload the page to reflect the change
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1000);
+                            } else {
+                                // Revert the checkbox if the update failed
+                                this.checked = !this.checked;
+                                console.error('Failed to update boost status:', data);
+                                alert('Failed to update boost status');
+                            }
+                        }.bind(this))
+                        .catch(function(error) {
+                            console.error('Error:', error);
+                            // Revert the checkbox if there was an error
+                            this.checked = !this.checked;
+                            this.disabled = false;
+                            if (slider) {
+                                slider.style.opacity = '1';
+                            }
+                            alert('Failed to update boost status: ' + error.message);
+                        }.bind(this));
+                    });
+                });
+
+                // Handle boost end date changes
+                document.querySelectorAll('.end-date-input').forEach(function(input) {
+                    input.addEventListener('change', function() {
+                        var vehicleId = this.dataset.vehicleId;
+                        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                        var endDate = this.value;
+                        
+                        console.log('Updating boost end date for vehicle:', vehicleId, 'to:', endDate);
+                        
+                        // Disable the input during the request
+                        this.disabled = true;
+                        
+                        // Make the AJAX request
+                        fetch('/users/admin/update-boost-end-date/' + vehicleId + '/', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                end_date: endDate
+                            })
+                        })
+                        .then(function(response) { 
+                            console.log('Response status:', response.status);
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.status);
+                            }
+                            return response.json(); 
+                        })
+                        .then(function(data) {
+                            console.log('Response data:', data);
+                            
+                            // Re-enable the input
+                            this.disabled = false;
+                            
+                            if (data.status === 'success') {
+                                console.log('Boost end date updated successfully');
+                                
+                                // Show success indicator (flash green border briefly)
+                                this.style.borderColor = '#28a745';
+                                setTimeout(function() {
+                                    this.style.borderColor = '';
+                                }.bind(this), 1000);
+                                
+                                // Reload the page to reflect the change
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1000);
+                            } else {
+                                console.error('Failed to update boost end date:', data);
+                                alert('Failed to update boost end date');
+                            }
+                        }.bind(this))
+                        .catch(function(error) {
+                            console.error('Error:', error);
+                            this.disabled = false;
+                            alert('Failed to update boost end date: ' + error.message);
+                        }.bind(this));
+                    });
+                });
+
+                // Handle urgent end date changes
+                document.querySelectorAll('.urgent-end-date-input').forEach(function(input) {
+                    input.addEventListener('change', function() {
+                        var vehicleId = this.dataset.vehicleId;
+                        var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                        var endDate = this.value;
+                        
+                        console.log('Updating urgent end date for vehicle:', vehicleId, 'to:', endDate);
+                        
+                        // Disable the input during the request
+                        this.disabled = true;
+                        
+                        // Make the AJAX request
+                        fetch('/users/admin/update-urgent-end-date/' + vehicleId + '/', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                end_date: endDate
+                            })
+                        })
+                        .then(function(response) { 
+                            console.log('Response status:', response.status);
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok: ' + response.status);
+                            }
+                            return response.json(); 
+                        })
+                        .then(function(data) {
+                            console.log('Response data:', data);
+                            
+                            // Re-enable the input
+                            this.disabled = false;
+                            
+                            if (data.status === 'success') {
+                                console.log('Urgent end date updated successfully');
+                                
+                                // Show success indicator (flash green border briefly)
+                                this.style.borderColor = '#28a745';
+                                setTimeout(function() {
+                                    this.style.borderColor = '';
+                                }.bind(this), 1000);
+                                
+                                // Reload the page to reflect the change
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1000);
+                            } else {
+                                console.error('Failed to update urgent end date:', data);
+                                alert('Failed to update urgent end date');
+                            }
+                        }.bind(this))
+                        .catch(function(error) {
+                            console.error('Error:', error);
+                            this.disabled = false;
+                            alert('Failed to update urgent end date: ' + error.message);
+                        }.bind(this));
+                    });
                 });
             });
+
         </script>
         {% else %}
         <div class="empty-state">

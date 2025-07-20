@@ -3,6 +3,39 @@
 from django.db import migrations, models
 
 
+def convert_registered_to_integer(apps, schema_editor):
+    """Convert registered field from date to integer"""
+    Vehicle = apps.get_model('ads', 'Vehicle')
+    db_alias = schema_editor.connection.alias
+    
+    # For each vehicle, convert the registered date to year
+    for vehicle in Vehicle.objects.using(db_alias).all():
+        if hasattr(vehicle, 'registered') and vehicle.registered:
+            # If it's a date, extract the year
+            if hasattr(vehicle.registered, 'year'):
+                vehicle.registered = vehicle.registered.year
+            # If it's already an integer, keep it
+            elif isinstance(vehicle.registered, int):
+                pass
+            # If it's None, set to None
+            else:
+                vehicle.registered = None
+            vehicle.save()
+
+
+def convert_registered_to_date(apps, schema_editor):
+    """Convert registered field back to date (reverse migration)"""
+    Vehicle = apps.get_model('ads', 'Vehicle')
+    db_alias = schema_editor.connection.alias
+    
+    # For each vehicle, convert the year to date
+    for vehicle in Vehicle.objects.using(db_alias).all():
+        if vehicle.registered:
+            from datetime import date
+            vehicle.registered = date(vehicle.registered, 1, 1)
+            vehicle.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -10,9 +43,29 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
+        # First, add the new field as nullable
+        migrations.AddField(
+            model_name='vehicle',
+            name='registered_new',
+            field=models.IntegerField(null=True, blank=True),
+        ),
+        
+        # Convert data
+        migrations.RunPython(
+            convert_registered_to_integer,
+            convert_registered_to_date,
+        ),
+        
+        # Remove the old field
+        migrations.RemoveField(
             model_name='vehicle',
             name='registered',
-            field=models.IntegerField(),
+        ),
+        
+        # Rename the new field to the original name
+        migrations.RenameField(
+            model_name='vehicle',
+            old_name='registered_new',
+            new_name='registered',
         ),
     ]

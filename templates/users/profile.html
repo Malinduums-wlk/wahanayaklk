@@ -226,11 +226,61 @@
     html {
         overflow-y: scroll;
     }
+
+    /* Disable ALL hover effects on the profile page */
+    .card,
+    .card *,
+    .container,
+    .container *,
+    .form-section,
+    .form-section *,
+    .profile-pic-upload,
+    .profile-pic-upload * {
+        transition: none !important;
+    }
+
+    .card:hover,
+    .card:hover *,
+    .container:hover,
+    .container:hover *,
+    .form-section:hover,
+    .form-section:hover *,
+    .profile-pic-upload:hover,
+    .profile-pic-upload:hover * {
+        transform: none !important;
+        box-shadow: none !important;
+        opacity: inherit !important;
+    }
+    
+    /* Disable any Bootstrap hover effects */
+    .btn:hover,
+    .btn:focus {
+        transform: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* Disable Bootstrap shadow classes */
+    .shadow,
+    .shadow-sm,
+    .shadow-lg,
+    .shadow-none {
+        box-shadow: none !important;
+    }
+    
+    /* Remove drop shadow from profile section completely */
+    .card {
+        box-shadow: none !important;
+    }
+    
+    /* Fix divider line opacity to 20% and prevent hover changes */
+    hr {
+        opacity: 0.2 !important;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5" style="max-width: 1100px;">
+<div class="container py-5" style="max-width: 1200px;">
     <div class="row">
         <div class="col-md-3 mb-4">
             <div class="account-sidebar">

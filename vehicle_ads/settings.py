@@ -25,18 +25,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p2in6^!2bqm3jy4!&8we93$pc@*k8r9$4-9(#)7dh#z4)h+2na'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-p2in6^!2bqm3jy4!&8we93$pc@*k8r9$4-9(#)7dh#z4)h+2na')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = ['www.wahanayak.lk', 'wahanayak.lk', '46.183.25.196', 'localhost', '127.0.0.1', '192.168.8.118']
+# Parse ALLOWED_HOSTS from environment variable
+ALLOWED_HOSTS_STR = os.getenv('ALLOWED_HOSTS', 'www.wahanayak.lk,wahanayak.lk,46.183.25.196,localhost,127.0.0.1,192.168.8.118')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(',')]
 
-
-CSRF_TRUSTED_ORIGINS = [
-    'https://wahanayak.lk',
-    'https://www.wahanayak.lk',
-]
+# Parse CSRF_TRUSTED_ORIGINS from environment variable
+CSRF_TRUSTED_ORIGINS_STR = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://wahanayak.lk,https://www.wahanayak.lk')
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS_STR.split(',')]
 
 # Application definition
 
@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'ckeditor_uploader',
     'django_cleanup.apps.CleanupConfig',
     'widget_tweaks',
+    'storages',  # Add django-storages
     
     # Local apps
     'users.apps.UsersConfig',
@@ -98,8 +99,12 @@ WSGI_APPLICATION = 'vehicle_ads.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'wahanayak_db'),
+        'USER': os.getenv('DB_USER', 'wahanayak_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'Wahanayak@611'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -134,13 +139,55 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # WhiteNoise configuration
-WHITENOISE_MAX_AGE = 0  # Disable caching in development
+WHITENOISE_MAX_AGE = int(os.getenv('WHITENOISE_MAX_AGE', '0'))  # Disable caching in development
 if not DEBUG:
-    WHITENOISE_MAX_AGE = 31536000  # 1 year in production
+    WHITENOISE_MAX_AGE = int(os.getenv('WHITENOISE_MAX_AGE_PROD', '31536000'))  # 1 year in production
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Bunny.net Storage Settings
+BUNNYCDN_STORAGE_ZONE_NAME = os.getenv('BUNNYCDN_STORAGE_ZONE_NAME')
+BUNNYCDN_API_KEY = os.getenv('BUNNYCDN_API_KEY')
+BUNNYCDN_REGION = os.getenv('BUNNYCDN_REGION', 'sg')  # Singapore region
+BUNNYCDN_PULL_ZONE_URL = os.getenv('BUNNYCDN_PULL_ZONE_URL')
+
+# Use Bunny.net storage for both development and production
+if BUNNYCDN_STORAGE_ZONE_NAME and BUNNYCDN_API_KEY and BUNNYCDN_PULL_ZONE_URL:
+    # Configure Django Storage
+    DEFAULT_FILE_STORAGE = 'vehicle_ads.storage.BunnyStorage'
+    # Update Media URL to use Bunny CDN
+    MEDIA_URL = f'{BUNNYCDN_PULL_ZONE_URL}/'
+    # Configure CKEditor to use Bunny.net storage
+    CKEDITOR_STORAGE_BACKEND = 'vehicle_ads.storage.BunnyStorage'
+else:
+    # Use local storage for development
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    CKEDITOR_STORAGE_BACKEND = 'django.core.files.storage.FileSystemStorage'
+
+# File upload settings
+MAX_UPLOAD_SIZE = int(os.getenv('MAX_UPLOAD_SIZE', '5242880'))  # 5MB
+
+# Logging configuration for bunny storage
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'bunny_storage.log'),
+        },
+    },
+    'loggers': {
+        'bunny_storage': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -157,17 +204,16 @@ LOGOUT_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
 # Email settings
-if DEBUG:
-    # During development, print emails to the console instead of sending them
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = 'smtp.zoho.com'  # Zoho Mail SMTP server
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'hello@wahanayak.lk')
-    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')  # Set in environment variable
-    DEFAULT_FROM_EMAIL = 'hello@wahanayak.lk'
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.zoho.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+
+# For local development, you can use:
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # CKEditor file upload path
-CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_UPLOAD_PATH = os.getenv('CKEDITOR_UPLOAD_PATH', 'uploads/')

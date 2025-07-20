@@ -10,6 +10,19 @@ A web application that allows users to post and manage vehicle selling advertise
 - Search and filter functionality
 - Responsive design
 
+## Environment Setup
+
+1. Create a `.env` file in the project root:
+```bash
+cp env_example.txt .env
+```
+
+2. Edit the `.env` file with your actual values:
+   - Set your database credentials
+   - Add your email password
+   - Configure Bunny.net storage settings (if using)
+   - Update allowed hosts for your domain
+
 ## Setup Instructions
 
 1. Create a virtual environment:
@@ -32,18 +45,25 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Run migrations:
+4. Set up your environment variables (see Environment Setup above)
+
+5. Run migrations:
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-5. Create superuser:
+6. Load initial data (optional):
+```bash
+python manage.py loaddata database_backup.json
+```
+
+7. Create superuser:
 ```bash
 python manage.py createsuperuser
 ```
 
-6. Run the development server:
+8. Run the development server:
 ```bash
 python manage.py runserver
 ```

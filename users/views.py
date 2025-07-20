@@ -83,12 +83,22 @@ def shop_setup(request):
 
     if request.method == 'POST':
         form = ShopForm(request.POST, request.FILES, instance=shop)
+        
+        # Check if this is just a cover photo removal
+        if request.POST.get('remove_cover') == '1':
+            if shop.cover_photo:
+                shop.cover_photo.delete(save=False)
+            shop.cover_photo = None
+            shop.save()
+            # Don't show success message for just removing cover photo
+            return redirect('users:shop_setup')
+        
         if form.is_valid():
             shop = form.save(commit=False)
-            if request.POST.get('remove_cover') == '1':
-                if shop.cover_photo:
-                    shop.cover_photo.delete(save=False)
-                shop.cover_photo = None
+            # Debug: Check if cover photo is being uploaded
+            if 'cover_photo' in request.FILES:
+                print(f"DEBUG: Uploading shop cover photo: {request.FILES['cover_photo'].name}")
+                print(f"DEBUG: File size: {request.FILES['cover_photo'].size} bytes")
             shop.save()
             messages.success(request, 'Shop details updated successfully!')
             return redirect('users:shop_setup')
@@ -373,28 +383,173 @@ def update_badge(request, user_id):
 @login_required
 @user_passes_test(is_admin)
 def toggle_urgent(request, vehicle_id):
-    """Toggle the urgent status for a vehicle. When enabling urgent, also ensure the ad is approved so it appears on the homepage urgent section."""
+    """Toggle the urgent status for a vehicle."""
     if request.method == 'POST':
         vehicle = get_object_or_404(Vehicle, id=vehicle_id)
-
+        
         try:
             data = json.loads(request.body or '{}')
-            # Determine desired urgent status; if not provided, flip current
             desired_urgent = data.get('is_urgent')
+            if isinstance(desired_urgent, str):
+                desired_urgent = desired_urgent.lower() == 'true'
             if desired_urgent is None:
                 desired_urgent = not vehicle.is_urgent
-        except json.JSONDecodeError:
-            desired_urgent = not vehicle.is_urgent
+            
+            # Set the urgent status
+            vehicle.is_urgent = bool(desired_urgent)
+            
+            # Ensure the vehicle is approved when marking as urgent
+            if vehicle.is_urgent and vehicle.status != 'approved':
+                vehicle.status = 'approved'
+            
+            vehicle.save()
+            
+            response_data = {'status': 'success', 'is_urgent': vehicle.is_urgent}
+            return JsonResponse(response_data)
+            
+        except json.JSONDecodeError as e:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
-        vehicle.is_urgent = bool(desired_urgent)
+@login_required
+@user_passes_test(is_admin)
+def toggle_boost(request, vehicle_id):
+    """Toggle the boost status for a vehicle."""
+    if request.method == 'POST':
+        vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+        
+        try:
+            data = json.loads(request.body or '{}')
+            desired_boost = data.get('is_boosted')
+            if isinstance(desired_boost, str):
+                desired_boost = desired_boost.lower() == 'true'
+            if desired_boost is None:
+                desired_boost = not vehicle.is_boosted
+            
+            # Set the boost status
+            vehicle.is_boosted = bool(desired_boost)
+            
+            # Ensure the vehicle is approved when marking as boosted
+            if vehicle.is_boosted and vehicle.status != 'approved':
+                vehicle.status = 'approved'
+            
+            vehicle.save()
+            
+            response_data = {'status': 'success', 'is_boosted': vehicle.is_boosted}
+            return JsonResponse(response_data)
+            
+        except json.JSONDecodeError as e:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
-        # Ensure the vehicle is approved when marking as urgent so it shows on homepage
-        if vehicle.is_urgent and vehicle.status != 'approved':
-            vehicle.status = 'approved'
+@login_required
+@user_passes_test(is_admin)
+def update_boost_end_date(request, vehicle_id):
+    """Update the boost end date for a vehicle."""
+    if request.method == 'POST':
+        vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+        
+        try:
+            data = json.loads(request.body or '{}')
+            end_date_str = data.get('end_date')
+            
+            if end_date_str:
+                from datetime import datetime
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                vehicle.boost_end_date = end_date
+            else:
+                vehicle.boost_end_date = None
+            
+            vehicle.save()
+            
+            response_data = {
+                'status': 'success', 
+                'boost_end_date': vehicle.boost_end_date.isoformat() if vehicle.boost_end_date else None
+            }
+            return JsonResponse(response_data)
+            
+        except json.JSONDecodeError as e:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        except ValueError as e:
+            return JsonResponse({'status': 'error', 'message': 'Invalid date format'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
-        vehicle.save()
-        return JsonResponse({'status': 'success', 'is_urgent': vehicle.is_urgent})
-    return JsonResponse({'status': 'error'}, status=400)
+@login_required
+@user_passes_test(is_admin)
+def update_urgent_end_date(request, vehicle_id):
+    """Update the urgent end date for a vehicle."""
+    if request.method == 'POST':
+        vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+        
+        try:
+            data = json.loads(request.body or '{}')
+            end_date_str = data.get('end_date')
+            
+            if end_date_str:
+                from datetime import datetime
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                vehicle.urgent_end_date = end_date
+            else:
+                vehicle.urgent_end_date = None
+            
+            vehicle.save()
+            
+            response_data = {
+                'status': 'success', 
+                'urgent_end_date': vehicle.urgent_end_date.isoformat() if vehicle.urgent_end_date else None
+            }
+            return JsonResponse(response_data)
+            
+        except json.JSONDecodeError as e:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+        except ValueError as e:
+            return JsonResponse({'status': 'error', 'message': 'Invalid date format'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+@login_required
+@user_passes_test(is_admin)
+def delete_ad(request, vehicle_id):
+    """Delete a vehicle ad."""
+    if request.method == 'POST':
+        try:
+            vehicle = get_object_or_404(Vehicle, id=vehicle_id)
+            
+            # Store vehicle info for response
+            vehicle_info = {
+                'id': vehicle.id,
+                'ad_id': vehicle.ad_id,
+                'make': vehicle.make,
+                'model': vehicle.model,
+                'year': vehicle.year
+            }
+            
+            # Delete the vehicle (this will cascade to related images)
+            vehicle.delete()
+            
+            response_data = {
+                'status': 'success',
+                'message': f'Ad {vehicle_info["ad_id"]} ({vehicle_info["year"]} {vehicle_info["make"]} {vehicle_info["model"]}) has been deleted successfully',
+                'deleted_vehicle': vehicle_info
+            }
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
 
 def shop_profile(request, user_id):
     """

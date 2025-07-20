@@ -129,6 +129,11 @@ class ShopForm(forms.ModelForm):
         fields = ['cover_photo', 'company_name', 'contact_number1', 'contact_number2', 
                  'whatsapp_number', 'address', 'google_map_link', 'facebook_link', 'youtube_link']
         widgets = {
+            'cover_photo': forms.FileInput(attrs={
+                'class': 'form-control',
+                'style': 'display: none;',
+                'accept': 'image/*'
+            }),
             'company_name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter company name'

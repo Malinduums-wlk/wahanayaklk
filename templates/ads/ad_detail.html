@@ -1224,9 +1224,14 @@
                         <div class="seller-details ms-3">
                             <div class="text-muted small">sell by</div>
                             <div class="seller-name">
-                                {% if vehicle.user.userprofile.listing_type == 'company' %}
-                                    <a href="{% url 'users:shop_profile' vehicle.user.id %}" class="text-decoration-none text-dark">
-                                        {{ vehicle.user.shop.company_name|default:vehicle.user.get_full_name }}
+                                {% if vehicle.user.userprofile.is_premium and vehicle.user.shop %}
+                                    <a href="{% url 'users:shop_profile' vehicle.user.id %}" class="text-decoration-none text-dark seller-link">
+                                        {% if vehicle.user.userprofile.listing_type == 'company' %}
+                                            {{ vehicle.user.shop.company_name|default:vehicle.user.get_full_name }}
+                                        {% else %}
+                                            {{ vehicle.user.get_full_name|default:vehicle.user.username }}
+                                        {% endif %}
+                                        <i class="fas fa-external-link-alt ms-1" style="font-size: 0.8rem; opacity: 0.7;"></i>
                                     </a>
                                 {% else %}
                                     {{ vehicle.user.get_full_name|default:vehicle.user.username }}
